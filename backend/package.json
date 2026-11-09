@@ -1,0 +1,32 @@
+{
+  "name": "isyntara-backend",
+  "version": "1.0.0",
+  "description": "Backend API for the iSyntara aerospace internship platform",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "keywords": [
+    "isyntara",
+    "aerospace",
+    "internships",
+    "backend"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "6.19.3",
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.3",
+    "multer": "^2.5.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10",
+    "prisma": "6.19.3"
+  },
+  "allowScripts": {}
+}
