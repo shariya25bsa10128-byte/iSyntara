@@ -1456,3 +1456,605 @@
   height: 15px;
   transform: none !important;
 }
+
+/* =========================================
+   ISYNTARA STUDENT DASHBOARD — UI REFINEMENT
+   ========================================= */
+
+/* Main workspace */
+.student-dashboard {
+  background:
+    radial-gradient(
+      circle at 85% 5%,
+      rgba(30, 100, 145, 0.08),
+      transparent 28%
+    ),
+    #050b16;
+}
+
+.student-main {
+  min-width: 0;
+}
+
+/* Sidebar refinement */
+.student-sidebar {
+  background: linear-gradient(
+    180deg,
+    #0a1423 0%,
+    #080f1d 100%
+  );
+  border-right: 1px solid rgba(104, 157, 194, 0.16);
+}
+
+.sidebar-brand {
+  margin-bottom: 62px;
+  transition: opacity 0.2s ease;
+}
+
+.sidebar-brand:hover {
+  opacity: 0.85;
+}
+
+.sidebar-item {
+  border: 1px solid transparent;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.sidebar-item:hover {
+  transform: translateX(3px);
+  background: rgba(63, 190, 220, 0.07);
+}
+
+.sidebar-item.active {
+  background: linear-gradient(
+    100deg,
+    rgba(56, 203, 224, 0.15),
+    rgba(56, 203, 224, 0.04)
+  );
+  border-color: rgba(75, 213, 232, 0.16);
+}
+
+/* Top navigation */
+.student-topbar {
+  background: rgba(7, 14, 26, 0.94);
+  border-bottom-color: rgba(104, 157, 194, 0.14);
+}
+
+.back-home-button {
+  transition:
+    color 0.2s ease,
+    background 0.2s ease;
+}
+
+/* Welcome section */
+.student-welcome {
+  min-height: 190px;
+  padding: 34px 38px;
+  border-radius: 18px;
+  border-color: rgba(70, 190, 220, 0.22);
+  background:
+    radial-gradient(
+      circle at 88% 45%,
+      rgba(49, 190, 218, 0.15),
+      transparent 28%
+    ),
+    linear-gradient(
+      115deg,
+      #10253a 0%,
+      #0b192a 55%,
+      #101b30 100%
+    );
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.16);
+}
+
+.student-welcome h1 {
+  line-height: 1.2;
+}
+
+.welcome-decoration {
+  color: rgba(79, 218, 235, 0.72);
+  filter: drop-shadow(0 0 22px rgba(66, 228, 242, 0.2));
+}
+
+.welcome-eyebrow {
+  letter-spacing: 2px;
+}
+
+/* Statistics */
+.student-stat-card {
+  position: relative;
+  overflow: hidden;
+  min-height: 104px;
+  padding: 20px;
+  border-color: rgba(104, 157, 194, 0.17);
+  border-radius: 15px;
+  background: linear-gradient(
+    145deg,
+    #101e30,
+    #0b1727
+  );
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.student-stat-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(77, 208, 231, 0.35);
+}
+
+.stat-icon {
+  border-radius: 12px;
+}
+
+/* Dashboard panels */
+.dashboard-panel {
+  border-color: rgba(104, 157, 194, 0.16);
+  border-radius: 16px;
+  background: linear-gradient(
+    145deg,
+    #0d1929,
+    #091321
+  );
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+}
+
+.panel-heading h2 {
+  letter-spacing: -0.4px;
+}
+
+.completion-panel {
+  padding: 28px 30px;
+}
+
+.completion-progress-track {
+  height: 10px;
+  overflow: hidden;
+  border-radius: 20px;
+  background: #1b2b3e;
+}
+
+.completion-progress-fill {
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    #20b8d1,
+    #54e7e9
+  );
+  box-shadow: 0 0 14px rgba(66, 228, 242, 0.22);
+  transition: width 0.4s ease;
+}
+
+/* Quick access cards */
+.student-quick-links a {
+  min-height: 92px;
+  padding: 20px;
+  border-color: rgba(104, 157, 194, 0.17);
+  border-radius: 14px;
+  background: linear-gradient(
+    145deg,
+    #102035,
+    #0b1727
+  );
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.student-quick-links a:hover {
+  transform: translateY(-3px);
+  border-color: rgba(85, 220, 239, 0.4);
+  background: #12253a;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+}
+
+.student-quick-links a > svg:first-child {
+  flex-shrink: 0;
+}
+
+.student-quick-links strong {
+  font-size: 13px;
+  letter-spacing: 0.1px;
+}
+
+.student-quick-links small {
+  font-size: 11px;
+}
+
+/* Smaller screens */
+@media (max-width: 760px) {
+  .student-welcome {
+    min-height: 150px;
+    padding: 24px 20px;
+  }
+
+  .student-stat-card {
+    min-height: 88px;
+  }
+
+  .completion-panel {
+    padding: 22px 18px;
+  }
+
+  .student-quick-links a {
+    min-height: 82px;
+    padding: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .student-dashboard *,
+  .student-dashboard *::before,
+  .student-dashboard *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+/* =========================================
+   APPLICATION OVERVIEW
+   ========================================= */
+
+.application-overview-panel {
+  margin-bottom: 20px;
+}
+
+.application-overview-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #48d5e8;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.application-overview-link:hover {
+  color: #ffffff;
+}
+
+.application-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 13px;
+  margin-top: 22px;
+}
+
+.application-overview-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 100px;
+  padding: 18px;
+  border: 1px solid rgba(104, 157, 194, 0.17);
+  border-radius: 13px;
+  background: rgba(17, 34, 53, 0.72);
+}
+
+.application-overview-card span {
+  color: #91a9c5;
+  font-size: 11px;
+}
+
+.application-overview-card strong {
+  color: #f4f8ff;
+  font-size: 25px;
+  font-weight: 700;
+}
+
+.application-stats-message {
+  margin-top: 18px;
+  color: #91a9c5;
+  font-size: 13px;
+}
+
+.application-stats-message.error {
+  color: #ff9292;
+}
+
+@media (max-width: 900px) {
+  .application-overview-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 430px) {
+  .application-overview-grid {
+    grid-template-columns: 1fr;
+  }
+}
+/* RECENT APPLICATIONS */
+
+.recent-applications-panel {
+  margin-bottom: 20px;
+}
+
+.recent-applications-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.recent-application-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 17px;
+  border: 1px solid rgba(104, 157, 194, 0.17);
+  border-radius: 13px;
+  background: rgba(17, 34, 53, 0.72);
+}
+
+.recent-application-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.recent-application-info strong {
+  color: #f4f8ff;
+  font-size: 14px;
+}
+
+.recent-application-info span {
+  color: #91a9c5;
+  font-size: 12px;
+}
+
+.recent-application-info small {
+  color: #718ba8;
+  font-size: 11px;
+}
+
+.recent-application-status {
+  flex-shrink: 0;
+  padding: 7px 11px;
+  border-radius: 20px;
+  background: rgba(71, 223, 240, 0.10);
+  color: #47dff0;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+@media (max-width: 520px) {
+  .recent-application-item {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+/* =========================================
+   ISYNTARA — PROFILE & RESUME UI FIX
+   Matches current StudentDashboard.jsx
+========================================= */
+
+/* Profile save section */
+.student-dashboard .profile-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 30px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(104, 157, 194, 0.16);
+}
+
+.student-dashboard .primary-dashboard-button {
+  min-height: 47px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 0 20px;
+  border: 1px solid #42dce8;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #42d9e6, #25b9d5);
+  color: #04131e;
+  font-size: 12px;
+  font-weight: 800;
+  transition: 0.2s ease;
+}
+
+.student-dashboard .primary-dashboard-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 7px 22px rgba(53, 204, 226, 0.2);
+  background: linear-gradient(135deg, #72eff2, #42d9e6);
+}
+
+.student-dashboard .primary-dashboard-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Resume upload section */
+.student-dashboard .resume-upload-area {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 15px;
+  padding: 28px;
+  border: 1px dashed #31516b;
+  border-radius: 13px;
+  background: rgba(9, 21, 35, 0.8);
+}
+
+.student-dashboard .resume-upload-area h3 {
+  margin: 0;
+  color: #edf6ff;
+  font-size: 17px;
+}
+
+.student-dashboard .resume-upload-area > p {
+  margin: 0;
+  color: #8da8c8;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.student-dashboard #resume-upload {
+  width: 100%;
+  max-width: 100%;
+  padding: 12px;
+  border: 1px solid #263b52;
+  border-radius: 8px;
+  background: #07111f;
+  color: #b9cce1;
+  font-size: 11px;
+}
+
+.student-dashboard #resume-upload::file-selector-button {
+  margin-right: 12px;
+  padding: 9px 13px;
+  border: 1px solid #315b73;
+  border-radius: 6px;
+  background: #112b40;
+  color: #75dff0;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.student-dashboard .selected-resume-file {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  color: #6ed9eb;
+  font-size: 11px;
+}
+
+/* Current resume card */
+.student-dashboard .resume-current-file {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+  padding: 20px;
+  border: 1px solid rgba(104, 157, 194, 0.2);
+  border-radius: 12px;
+  background: linear-gradient(145deg, #102035, #0b1727);
+}
+
+.student-dashboard .resume-current-icon {
+  width: 47px;
+  height: 47px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border-radius: 11px;
+  color: #58ddec;
+  background: #123344;
+}
+
+.student-dashboard .resume-current-info {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.student-dashboard .resume-current-info strong {
+  color: #edf6ff;
+  font-size: 13px;
+}
+
+.student-dashboard .resume-current-info span {
+  color: #829bb8;
+  font-size: 11px;
+}
+
+.student-dashboard .resume-current-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+
+.student-dashboard .resume-action-button,
+.student-dashboard .resume-delete-button {
+  min-height: 39px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 13px;
+  border-radius: 7px;
+  font-size: 11px;
+  font-weight: 700;
+  transition: 0.2s ease;
+}
+
+.student-dashboard .resume-action-button {
+  border: 1px solid #23617d;
+  color: #68d9f2;
+  background: #102638;
+}
+
+.student-dashboard .resume-action-button:hover {
+  background: #173b51;
+  border-color: #43c9e7;
+}
+
+.student-dashboard .resume-delete-button {
+  border: 1px solid #613746;
+  color: #f294a4;
+  background: #241923;
+}
+
+.student-dashboard .resume-delete-button:hover:not(:disabled) {
+  background: #3b202c;
+  border-color: #a54c61;
+}
+
+.student-dashboard .resume-delete-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Keyboard accessibility */
+.student-dashboard button:focus-visible,
+.student-dashboard input:focus-visible {
+  outline: 2px solid #56e4f0;
+  outline-offset: 3px;
+}
+
+/* Mobile adjustments */
+@media (max-width: 600px) {
+  .student-dashboard .profile-form-actions {
+    justify-content: stretch;
+  }
+
+  .student-dashboard .profile-form-actions .primary-dashboard-button {
+    width: 100%;
+  }
+
+  .student-dashboard .resume-upload-area {
+    padding: 20px 15px;
+  }
+
+  .student-dashboard .resume-current-file {
+    align-items: flex-start;
+  }
+
+  .student-dashboard .resume-current-actions {
+    width: 100%;
+  }
+
+  .student-dashboard .resume-current-actions button {
+    flex: 1;
+  }
+
+  .student-dashboard .resume-upload-area .primary-dashboard-button {
+    width: 100%;
+  }
+}

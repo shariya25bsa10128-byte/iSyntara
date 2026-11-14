@@ -565,3 +565,406 @@
     width: 100%;
   }
 }
+
+/* ==========================================
+   ISYNTARA — DETAILED OPPORTUNITY LISTINGS
+========================================== */
+
+.opportunity-list-detailed {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.opportunity-detail-card {
+  padding: 28px;
+  border: 1px solid rgba(69, 174, 214, 0.24);
+  border-radius: 15px;
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(40, 119, 157, 0.09),
+      transparent 35%
+    ),
+    #091525;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.13);
+}
+
+.opportunity-detail-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.opportunity-detail-header h3 {
+  margin: 6px 0 9px;
+  color: #f1f7ff;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 21px;
+  line-height: 1.4;
+}
+
+.opportunity-category-label {
+  display: inline-block;
+  color: #55ddec;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1.3px;
+  text-transform: uppercase;
+}
+
+.opportunity-information-panel {
+  margin-top: 23px;
+  padding: 22px;
+  border: 1px solid rgba(85, 230, 242, 0.12);
+  border-radius: 11px;
+  background: rgba(5, 15, 27, 0.75);
+}
+
+.opportunity-information-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 21px;
+  color: #55ddec;
+}
+
+.opportunity-information-heading h4 {
+  margin: 0;
+  color: #eaf4ff;
+  font-size: 13px;
+  letter-spacing: 0.4px;
+}
+
+.opportunity-information-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px 20px;
+}
+
+.opportunity-information-grid > div {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.opportunity-information-grid > div > span {
+  color: #718ba7;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.opportunity-information-grid strong {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  color: #dceaf8;
+  font-size: 12px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.opportunity-information-grid strong svg {
+  flex-shrink: 0;
+  color: #50cde5;
+  margin-top: 1px;
+}
+
+.opportunity-detail-body {
+  margin-top: 28px;
+}
+
+.opportunity-detail-section-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 19px;
+  padding-bottom: 13px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.opportunity-detail-section-heading > span {
+  color: #53d9e9;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.opportunity-detail-section-heading h4 {
+  margin: 0;
+  color: #f0f6ff;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 15px;
+}
+
+.opportunity-content-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.opportunity-content-section h4 {
+  margin: 0 0 10px;
+  color: #62d8e9;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.9px;
+}
+
+.opportunity-content-section p {
+  margin: 0 0 9px;
+  color: #aebfd2;
+  font-size: 12px;
+  line-height: 1.85;
+  white-space: pre-wrap;
+}
+
+.opportunity-content-section ul {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding-left: 20px;
+}
+
+.opportunity-content-section li {
+  padding-left: 5px;
+  color: #b9c9da;
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+.opportunity-content-section li::marker {
+  color: #55ddec;
+}
+
+.opportunity-application-link {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  margin-top: 26px;
+  padding: 16px;
+  border: 1px solid rgba(85, 230, 242, 0.15);
+  border-radius: 9px;
+  background: rgba(85, 230, 242, 0.035);
+  color: #55ddec;
+}
+
+.opportunity-application-link > div {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.opportunity-application-link span,
+.opportunity-published-info span {
+  color: #718ba7;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.opportunity-application-link a {
+  color: #64d9ee;
+  font-size: 11px;
+  overflow-wrap: anywhere;
+  text-decoration: none;
+}
+
+.opportunity-application-link a:hover {
+  text-decoration: underline;
+}
+
+.opportunity-detail-footer {
+  margin-top: 27px;
+  padding-top: 21px;
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+.opportunity-published-info {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.opportunity-published-info strong {
+  color: #b6c9dc;
+  font-size: 11px;
+}
+
+@media (max-width: 900px) {
+  .opportunity-information-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .opportunity-detail-card {
+    padding: 18px 15px;
+  }
+
+  .opportunity-detail-header {
+    flex-direction: column;
+  }
+
+  .opportunity-detail-header h3 {
+    font-size: 18px;
+  }
+
+  .opportunity-information-panel {
+    padding: 16px 13px;
+  }
+
+  .opportunity-information-grid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .opportunity-detail-footer {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .opportunity-detail-footer .my-internship-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .opportunity-detail-footer .my-internship-actions button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ==========================================
+   ISYNTARA — STRUCTURED OPPORTUNITY EDITOR
+========================================== */
+
+.opportunity-edit-modal {
+  width: min(900px, 94vw);
+  max-width: 900px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.opportunity-edit-modal .my-internship-modal-header {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: #0b1727;
+}
+
+.opportunity-edit-modal .my-internship-modal-header p {
+  margin: 6px 0 0;
+  color: #8197ad;
+  font-size: 11px;
+}
+
+.opportunity-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 27px;
+}
+
+.opportunity-edit-section {
+  display: flex;
+  flex-direction: column;
+  gap: 17px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.opportunity-edit-section h4 {
+  margin: 0;
+  padding-bottom: 12px;
+  color: #59dbea;
+  border-bottom: 1px solid rgba(85, 230, 242, 0.12);
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 13px;
+  letter-spacing: 0.4px;
+}
+
+.opportunity-edit-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: #c6d5e5;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.opportunity-edit-form input:not([type="checkbox"]),
+.opportunity-edit-form textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 12px 13px;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 7px;
+  outline: none;
+  background: #050d19;
+  color: #edf5ff;
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.opportunity-edit-form textarea {
+  resize: vertical;
+}
+
+.opportunity-edit-form input:focus,
+.opportunity-edit-form textarea:focus {
+  border-color: rgba(85, 230, 242, 0.6);
+  box-shadow: 0 0 0 3px rgba(85, 230, 242, 0.05);
+}
+
+.opportunity-edit-form input::placeholder,
+.opportunity-edit-form textarea::placeholder {
+  color: #586d82;
+}
+
+.opportunity-edit-form .my-internship-edit-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 17px;
+}
+
+.opportunity-edit-form .my-internship-remote-toggle {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.opportunity-edit-form .my-internship-remote-toggle input {
+  width: 16px;
+  height: 16px;
+  accent-color: #55e6f2;
+}
+
+.opportunity-edit-form .my-internship-modal-footer {
+  position: sticky;
+  bottom: -1px;
+  z-index: 5;
+  padding: 16px 0 3px;
+  background: #0b1727;
+}
+
+@media (max-width: 600px) {
+  .opportunity-edit-modal {
+    width: 96vw;
+    max-height: 94vh;
+  }
+
+  .opportunity-edit-form .my-internship-edit-grid {
+    grid-template-columns: 1fr;
+  }
+}

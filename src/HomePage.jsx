@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import {
   ArrowDown,
@@ -54,23 +53,26 @@ function HomePage() {
   const navigate = useNavigate();
 
   const isStudent = user?.role === "STUDENT";
-  const isEmployer = user?.role === "EMPLOYER";
 
   const dashboardPath = isStudent
     ? "/student/dashboard"
     : "/employer/dashboard";
 
+  // Cinematic hero scroll progress
   useEffect(() => {
     const updateProgress = () => {
       const hero = document.querySelector(".cinematic-hero");
-
       if (!hero) return;
 
       const distance = hero.offsetHeight - window.innerHeight;
+
       const progress =
         distance > 0
           ? Math.min(
-              Math.max(-hero.getBoundingClientRect().top / distance, 0),
+              Math.max(
+                -hero.getBoundingClientRect().top / distance,
+                0
+              ),
               1
             )
           : 0;
@@ -79,12 +81,44 @@ function HomePage() {
     };
 
     updateProgress();
-    window.addEventListener("scroll", updateProgress, { passive: true });
+
+    window.addEventListener("scroll", updateProgress, {
+      passive: true,
+    });
+
     window.addEventListener("resize", updateProgress);
 
     return () => {
       window.removeEventListener("scroll", updateProgress);
       window.removeEventListener("resize", updateProgress);
+    };
+  }, []);
+
+  // Video playback and reduced-motion accessibility
+  useEffect(() => {
+    const video = document.querySelector(".cinematic-video");
+    if (!video) return;
+
+    const motionPreference = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    );
+
+    const syncPlayback = () => {
+      if (motionPreference.matches || document.hidden) {
+        video.pause();
+      } else {
+        video.play().catch(() => {});
+      }
+    };
+
+    syncPlayback();
+
+    motionPreference.addEventListener?.("change", syncPlayback);
+    document.addEventListener("visibilitychange", syncPlayback);
+
+    return () => {
+      motionPreference.removeEventListener?.("change", syncPlayback);
+      document.removeEventListener("visibilitychange", syncPlayback);
     };
   }, []);
 
@@ -96,13 +130,6 @@ function HomePage() {
     navigate("/");
   };
 
-  const spacecraftOpacity = Math.max(
-    0,
-    Math.min((heroProgress - 0.35) / 0.45, 1)
-  );
-
-  const launchOpacity = 1 - spacecraftOpacity;
-
   return (
     <main>
       {/* NAVIGATION */}
@@ -111,6 +138,7 @@ function HomePage() {
           <span className="brand-symbol">
             <Orbit size={25} strokeWidth={1.7} />
           </span>
+
           <span>
             iSyntara<span className="brand-dot">.</span>
           </span>
@@ -119,16 +147,26 @@ function HomePage() {
         <button
           className="menu-toggle"
           onClick={() => setMenuOpen(!menuOpen)}
-          aria-label={menuOpen ? "Close navigation" : "Open navigation"}
+          aria-label={
+            menuOpen ? "Close navigation" : "Open navigation"
+          }
           aria-expanded={menuOpen}
         >
           {menuOpen ? <X size={23} /> : <Menu size={23} />}
         </button>
 
         <div className={`nav-links ${menuOpen ? "nav-open" : ""}`}>
-          <a href="#about" onClick={closeMenu}>ABOUT</a>
-          <a href="#services" onClick={closeMenu}>OPPORTUNITIES</a>
-          <a href="#contact" onClick={closeMenu}>CONTACT</a>
+          <a href="#about" onClick={closeMenu}>
+            ABOUT
+          </a>
+
+          <a href="#services" onClick={closeMenu}>
+            OPPORTUNITIES
+          </a>
+
+          <a href="#contact" onClick={closeMenu}>
+            CONTACT
+          </a>
 
           {user ? (
             <>
@@ -138,7 +176,9 @@ function HomePage() {
                 onClick={closeMenu}
               >
                 <LayoutDashboard size={15} />
-                {isStudent ? "STUDENT DASHBOARD" : "EMPLOYER DASHBOARD"}
+                {isStudent
+                  ? "STUDENT DASHBOARD"
+                  : "EMPLOYER DASHBOARD"}
               </Link>
 
               <button
@@ -171,167 +211,25 @@ function HomePage() {
         </div>
       </nav>
 
-      {/* CINEMATIC HERO */}
+      {/* CINEMATIC VIDEO HERO */}
       <section className="cinematic-hero" id="home">
         <div className="cinematic-sticky">
           <div className="cinematic-background">
-            {/* Rocket launch scene */}
-            <div
-              className="launch-scene"
-              style={{ opacity: launchOpacity }}
-            >
-              <div className="launch-haze" />
-
-              <div className="launch-stars">
-                {Array.from({ length: 35 }, (_, index) => (
-                  <span
-                    key={index}
-                    style={{
-                      "--star-x": `${(index * 37) % 100}%`,
-                      "--star-y": `${(index * 61) % 100}%`,
-                      "--star-delay": `${(index % 7) * 0.4}s`,
-                    }}
-                  />
-                ))}
-              </div>
-
-              <div className="launch-cloud launch-cloud-one" />
-              <div className="launch-cloud launch-cloud-two" />
-
-              <div className="rocket-stage">
-                <div className="rocket-aura" />
-
-                <svg
-                  className="rocket-vehicle"
-                  viewBox="0 0 120 460"
-                  xmlns="http://www.w3.org/2000/svg"
-                  role="img"
-                  aria-label="Illustrated launch vehicle"
-                >
-                  <defs>
-                    <linearGradient id="rocketBody" x1="0" x2="1">
-                      <stop offset="0%" stopColor="#9ba8b8" />
-                      <stop offset="35%" stopColor="#f4f7fb" />
-                      <stop offset="75%" stopColor="#dce5ef" />
-                      <stop offset="100%" stopColor="#73869d" />
-                    </linearGradient>
-
-                    <linearGradient
-                      id="rocketFlame"
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
-                      <stop offset="0%" stopColor="#ffffff" />
-                      <stop offset="35%" stopColor="#55e6f2" />
-                      <stop offset="75%" stopColor="#4c7dff" />
-                      <stop offset="100%" stopColor="#ff8c42" />
-                    </linearGradient>
-                  </defs>
-
-                  <path
-                    d="M60 4 C43 25 34 62 31 112 L31 338 L89 338 L89 112 C86 62 77 25 60 4Z"
-                    fill="url(#rocketBody)"
-                  />
-
-                  <path
-                    d="M60 4 C43 25 34 62 31 112 L89 112 C86 62 77 25 60 4Z"
-                    fill="#f4f7fb"
-                  />
-
-                  <path d="M31 275 L8 330 L31 319Z" fill="#61758b" />
-                  <path d="M89 275 L112 330 L89 319Z" fill="#61758b" />
-
-                  <rect
-                    x="31"
-                    y="322"
-                    width="58"
-                    height="20"
-                    fill="#8292a5"
-                  />
-
-                  <circle
-                    cx="60"
-                    cy="155"
-                    r="17"
-                    fill="#0a1729"
-                    stroke="#55e6f2"
-                    strokeWidth="4"
-                  />
-
-                  <circle cx="60" cy="155" r="8" fill="#4c7dff" />
-
-                  <path
-                    d="M44 340 L76 340 L70 380 L50 380Z"
-                    fill="#52657a"
-                  />
-
-                  <path
-                    className="rocket-flame"
-                    d="M48 370 L72 370 L88 460 L60 430 L32 460Z"
-                    fill="url(#rocketFlame)"
-                  />
-
-                  <path
-                    className="rocket-flame-core"
-                    d="M55 370 L65 370 L72 425 L60 405 L48 425Z"
-                    fill="#ffffff"
-                  />
-                </svg>
-
-                <div className="launch-light" />
-              </div>
-
-              <div className="launch-ground">
-                <div className="launch-ground-line" />
-              </div>
-
-              <div className="launch-caption">
-                <span>01 — IGNITION</span>
-                <span>THE JOURNEY BEGINS</span>
-              </div>
-            </div>
-
-            {/* Spacecraft / Earth scene */}
-            <div
-              className="orbit-scene"
-              style={{ opacity: spacecraftOpacity }}
-            >
-              <div className="orbit-stars">
-                {Array.from({ length: 45 }, (_, index) => (
-                  <span
-                    key={index}
-                    style={{
-                      "--star-x": `${(index * 43) % 100}%`,
-                      "--star-y": `${(index * 29) % 100}%`,
-                      "--star-delay": `${(index % 8) * 0.35}s`,
-                    }}
-                  />
-                ))}
-              </div>
-
-              <div className="earth">
-                <div className="earth-clouds" />
-                <div className="earth-atmosphere" />
-              </div>
-
-              <div className="space-orbit space-orbit-one" />
-              <div className="space-orbit space-orbit-two" />
-
-              <div className="spacecraft">
-                <div className="spacecraft-body" />
-                <div className="spacecraft-wing spacecraft-wing-left" />
-                <div className="spacecraft-wing spacecraft-wing-right" />
-                <div className="spacecraft-engine" />
-                <div className="spacecraft-glow" />
-              </div>
-
-              <div className="orbit-caption">
-                <span>02 — ORBIT</span>
-                <span>THE NEXT FRONTIER</span>
-              </div>
-            </div>
+            <video
+  className="cinematic-video"
+  autoPlay
+  muted
+  loop
+  playsInline
+  controls
+  preload="auto"
+  poster="/media/isyntara-hero-poster.png"
+>
+  <source
+    src="/media/isyntara-hero.mp4"
+    type="video/mp4"
+  />
+</video>
           </div>
 
           <div className="hero-overlay" />
@@ -344,10 +242,14 @@ function HomePage() {
 
             <h1 className="cinematic-title">
               <span className="title-line">YOUR FUTURE</span>
+
               <span className="title-line">
                 IS <span className="gradient-text">NOT</span>
               </span>
-              <span className="title-line outline-text">GROUNDED.</span>
+
+              <span className="title-line outline-text">
+                GROUNDED.
+              </span>
             </h1>
 
             <p className="hero-description">
@@ -357,12 +259,18 @@ function HomePage() {
             </p>
 
             <div className="hero-actions">
-              <a href="#services" className="button button-primary">
+              <a
+                href="#services"
+                className="button button-primary"
+              >
                 EXPLORE OPPORTUNITIES
                 <ArrowRight size={18} />
               </a>
 
-              <a href="#about" className="button button-secondary">
+              <a
+                href="#about"
+                className="button button-secondary"
+              >
                 DISCOVER OUR MISSION
               </a>
             </div>
@@ -371,14 +279,25 @@ function HomePage() {
           <div className="cinematic-bottom">
             <span>ENGINEERING THE POSSIBLE</span>
 
-            <div className="scene-progress">
-              <span className={heroProgress < 0.5 ? "active" : ""}>01</span>
+            <div
+              className="scene-progress"
+              aria-label="Hero experience progress"
+            >
+              <span className={heroProgress < 0.5 ? "active" : ""}>
+                01
+              </span>
 
               <div className="scene-progress-track">
-                <div style={{ width: `${heroProgress * 100}%` }} />
+                <div
+                  style={{
+                    width: `${heroProgress * 100}%`,
+                  }}
+                />
               </div>
 
-              <span className={heroProgress >= 0.5 ? "active" : ""}>02</span>
+              <span className={heroProgress >= 0.5 ? "active" : ""}>
+                02
+              </span>
             </div>
 
             <a href="#about" className="scroll-indicator">
@@ -427,7 +346,7 @@ function HomePage() {
         </div>
       </section>
 
-      {/* SERVICES */}
+      {/* OPPORTUNITIES */}
       <section className="services section" id="services">
         <div className="section-label">
           <span>02</span> / WHAT'S POSSIBLE
@@ -454,14 +373,23 @@ function HomePage() {
             const Icon = service.icon;
 
             return (
-              <article className="service-card" key={service.number}>
+              <article
+                className="service-card"
+                key={service.number}
+              >
                 <div className="service-card-top">
-                  <span className="service-number">{service.number}</span>
+                  <span className="service-number">
+                    {service.number}
+                  </span>
+
                   <Icon size={30} strokeWidth={1.4} />
                 </div>
 
                 <div className="service-card-content">
-                  <span className="service-tag">{service.tag}</span>
+                  <span className="service-tag">
+                    {service.tag}
+                  </span>
+
                   <h3>{service.title}</h3>
                   <p>{service.description}</p>
                 </div>
@@ -501,11 +429,17 @@ function HomePage() {
           </p>
 
           {user ? (
-            <Link to={dashboardPath} className="button button-primary">
+            <Link
+              to={dashboardPath}
+              className="button button-primary"
+            >
               OPEN MY DASHBOARD <ArrowRight size={18} />
             </Link>
           ) : (
-            <Link to="/register" className="button button-primary">
+            <Link
+              to="/register"
+              className="button button-primary"
+            >
               GET STARTED <ArrowRight size={18} />
             </Link>
           )}
@@ -516,6 +450,7 @@ function HomePage() {
             <span className="brand-symbol">
               <Orbit size={22} strokeWidth={1.7} />
             </span>
+
             <span>
               iSyntara<span className="brand-dot">.</span>
             </span>

@@ -50,3 +50,4 @@ backend/*.pdf
 
 # Logs
 *.log
+/public/media/isyntara-hero.mp4

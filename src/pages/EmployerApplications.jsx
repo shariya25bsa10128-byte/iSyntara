@@ -1,251 +1,146 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-
 import {
-  Users,
-  Search,
-  RefreshCw,
-  FileText,
-  Download,
-  MapPin,
-  Clock3,
-  CheckCircle2,
-  AlertCircle,
-  LoaderCircle,
-  GraduationCap,
-  BriefcaseBusiness,
-  Eye,
-  X,
-  Building2,
-  CalendarDays,
-  Filter,
-  Laptop,
-  Mail,
-  Globe,
-  UserRound,
-  ShieldCheck,
-  History,
+  Users, Search, RefreshCw, FileText, Download, MapPin, Clock3,
+  CheckCircle2, AlertCircle, LoaderCircle, GraduationCap,
+  BriefcaseBusiness, Eye, X, Building2, CalendarDays, Filter,
+  Laptop, Mail, Globe, UserRound, History, GitCompareArrows
 } from "lucide-react";
-
 import { apiRequest, API_URL } from "../services/api";
 import "./EmployerApplications.css";
 
-const STATUS_OPTIONS = [
-  "REVIEWED",
-  "SHORTLISTED",
-  "INTERVIEW",
-  "ACCEPTED",
-  "REJECTED",
-];
-
-const STATUS_LABELS = {
+const STATUS = {
   PENDING: "Pending",
   REVIEWED: "Reviewed",
   SHORTLISTED: "Shortlisted",
   INTERVIEW: "Interview",
   ACCEPTED: "Accepted",
   REJECTED: "Rejected",
-  WITHDRAWN: "Withdrawn",
+  WITHDRAWN: "Withdrawn"
 };
 
-const CATEGORY_LABELS = {
+const CATEGORIES = {
   INTERNSHIP: "Internship",
   FULL_TIME_JOB: "Full-time Job",
   PART_TIME_JOB: "Part-time Job",
   FREELANCE: "Freelance",
   CONTRACT: "Contract",
   RESEARCH: "Research",
-  TRAINING: "Training",
+  TRAINING: "Training"
 };
 
-const CATEGORY_OPTIONS = Object.keys(CATEGORY_LABELS);
+const NEXT_STATUSES = [
+  "REVIEWED", "SHORTLISTED", "INTERVIEW", "ACCEPTED", "REJECTED"
+];
 
-function formatDate(date) {
-  if (!date) return "Not available";
+const date = value => {
+  if (!value) return "Not provided";
+  const d = new Date(value);
+  return Number.isNaN(d.getTime())
+    ? "Not provided"
+    : d.toLocaleDateString("en-IN", {
+        day: "numeric", month: "short", year: "numeric"
+      });
+};
 
-  const parsed = new Date(date);
+const dateTime = value => {
+  if (!value) return "Date unavailable";
+  const d = new Date(value);
+  return Number.isNaN(d.getTime())
+    ? "Date unavailable"
+    : d.toLocaleString("en-IN", {
+        day: "numeric", month: "short", year: "numeric",
+        hour: "numeric", minute: "2-digit"
+      });
+};
 
-  if (Number.isNaN(parsed.getTime())) return "Not available";
-
-  return parsed.toLocaleDateString("en-IN", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-}
-
-function formatDateTime(date) {
-  if (!date) return "Date unavailable";
-
-  const parsed = new Date(date);
-
-  if (Number.isNaN(parsed.getTime())) return "Date unavailable";
-
-  return parsed.toLocaleString("en-IN", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
-}
-
-function formatProfileDate(value) {
+const profileDate = value => {
   if (!value) return "";
+  const d = new Date(value);
+  return Number.isNaN(d.getTime())
+    ? String(value)
+    : d.toLocaleDateString("en-IN", { month: "short", year: "numeric" });
+};
 
-  const date = new Date(value);
+const opportunityOf = app => app?.opportunity || app?.internship || {};
+const profileOf = app => app?.user?.studentProfile || {};
+const statusClass = status => (status || "pending").toLowerCase();
 
-  if (Number.isNaN(date.getTime())) return String(value);
-
-  return date.toLocaleDateString("en-IN", {
-    month: "short",
-    year: "numeric",
-  });
-}
-
-function getStatusClass(status) {
-  return (status || "pending").toLowerCase();
-}
-
-function getApplicationOpportunity(application) {
-  return application?.opportunity || application?.internship || {};
-}
-
-function getOpportunityCategory(application) {
-  const opportunity = getApplicationOpportunity(application);
-
-  return (
-    opportunity.category ||
-    (application?.internship ? "INTERNSHIP" : "")
-  );
-}
-
-function getOpportunityCategoryLabel(application) {
-  return (
-    CATEGORY_LABELS[getOpportunityCategory(application)] ||
-    "Opportunity"
-  );
-}
-
-function getCandidateSkills(profile) {
-  if (Array.isArray(profile?.skills)) {
-    return profile.skills.join(", ");
-  }
-
-  return typeof profile?.skills === "string"
-    ? profile.skills
-    : "";
-}
-
-function getSkillArray(profile) {
-  if (Array.isArray(profile?.skills)) return profile.skills;
-
-  if (typeof profile?.skills === "string") {
-    return profile.skills
-      .split(",")
-      .map((skill) => skill.trim())
-      .filter(Boolean);
-  }
-
+const skillsOf = profile => {
+  const skills = profile?.skills;
+  if (Array.isArray(skills)) return skills.filter(Boolean);
+  if (typeof skills === "string")
+    return skills.split(",").map(s => s.trim()).filter(Boolean);
   return [];
-}
+};
 
-function getWorkExperience(profile) {
-  const experience = profile?.workExperience;
+const experienceOf = profile => {
+  const value = profile?.workExperience;
+  if (Array.isArray(value)) return value;
+  if (value && typeof value === "object") return [value];
 
-  if (Array.isArray(experience)) return experience;
-
-  if (typeof experience === "string") {
+  if (typeof value === "string") {
     try {
-      const parsed = JSON.parse(experience);
-
-      if (Array.isArray(parsed)) return parsed;
-
-      if (parsed && typeof parsed === "object") {
-        return [parsed];
-      }
-
-      return [];
+      const parsed = JSON.parse(value);
+      return Array.isArray(parsed) ? parsed :
+        parsed && typeof parsed === "object" ? [parsed] :
+        value.trim() ? [{ description: value }] : [];
     } catch {
-      return experience.trim()
-        ? [{ description: experience.trim() }]
-        : [];
+      return value.trim() ? [{ description: value }] : [];
     }
   }
-
-  if (experience && typeof experience === "object") {
-    return [experience];
-  }
-
   return [];
-}
+};
 
-function getCandidateProjects(profile) {
-  return Array.isArray(profile?.projects) ? profile.projects : [];
-}
+const projectsOf = profile =>
+  Array.isArray(profile?.projects) ? profile.projects : [];
 
-function getCandidateCertifications(profile) {
-  return Array.isArray(profile?.certifications)
-    ? profile.certifications
-    : [];
-}
+const certificationsOf = profile =>
+  Array.isArray(profile?.certifications) ? profile.certifications : [];
 
-function getExperienceField(experience, keys) {
-  for (const key of keys) {
-    const value = experience?.[key];
-
-    if (typeof value === "string" && value.trim()) {
-      return value.trim();
-    }
-  }
-
-  return "";
-}
-
-function safeExternalUrl(value) {
+const safeUrl = value => {
   if (typeof value !== "string" || !value.trim()) return "";
-
   try {
     const url = new URL(
-      /^https?:\/\//i.test(value)
-        ? value
-        : `https://${value}`
+      /^https?:\/\//i.test(value) ? value : `https://${value}`
     );
-
-    return ["http:", "https:"].includes(url.protocol)
-      ? url.href
-      : "";
+    return ["http:", "https:"].includes(url.protocol) ? url.href : "";
   } catch {
     return "";
   }
-}
+};
 
-function getHistory(application) {
-  if (
-    Array.isArray(application?.statusHistory) &&
-    application.statusHistory.length > 0
-  ) {
-    return application.statusHistory;
-  }
+const historyOf = app => {
+  if (Array.isArray(app?.statusHistory) && app.statusHistory.length)
+    return app.statusHistory;
 
-  // Older applications may not have history records.
-  return [
-    {
-      id: `legacy-${application.id}`,
-      fromStatus: null,
-      toStatus: application.status || "PENDING",
-      changedByRole: "SYSTEM",
-      note: "Application originally submitted.",
-      createdAt: application.appliedAt,
-    },
-  ];
+  return [{
+    id: `legacy-${app.id}`,
+    fromStatus: null,
+    toStatus: app.status || "PENDING",
+    changedByRole: "SYSTEM",
+    note: "Application originally submitted.",
+    createdAt: app.appliedAt
+  }];
+};
+
+const display = value => value || "Not provided";
+
+function SectionTitle({ icon: Icon, children, count }) {
+  return (
+    <div className="candidate-profile-section-title">
+      <Icon size={19} />
+      <h3>{children}</h3>
+      {count !== undefined && (
+        <span className="candidate-profile-section-count">{count}</span>
+      )}
+    </div>
+  );
 }
 
 function EmployerApplications() {
   const [applications, setApplications] = useState([]);
-
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -256,44 +151,30 @@ function EmployerApplications() {
 
   const [updatingId, setUpdatingId] = useState(null);
   const [downloadingId, setDownloadingId] = useState(null);
-
-  const [selectedApplication, setSelectedApplication] = useState(null);
-  const [selectedProfileApplication, setSelectedProfileApplication] =
-    useState(null);
-
   const [statusNotes, setStatusNotes] = useState({});
 
+  const [coverApplication, setCoverApplication] = useState(null);
+  const [profileApplication, setProfileApplication] = useState(null);
+
+  const [comparisonIds, setComparisonIds] = useState([]);
+  const [showComparison, setShowComparison] = useState(false);
+
   // LOAD APPLICATIONS
-
-  const loadApplications = useCallback(async (showRefresh = false) => {
-    if (showRefresh) {
-      setRefreshing(true);
-    } else {
-      setLoading(true);
-    }
-
+  const loadApplications = useCallback(async (refresh = false) => {
+    refresh ? setRefreshing(true) : setLoading(true);
     setError("");
 
     try {
       const data = await apiRequest("/employer/applications");
+      const records = data.applications || [];
+      setApplications(records);
 
-      const loadedApplications = data.applications || [];
-
-      setApplications(loadedApplications);
-
-      // Keep open modals synchronized with refreshed data.
-      setSelectedApplication((previous) =>
-        previous
-          ? loadedApplications.find((item) => item.id === previous.id) ||
-            previous
-          : null
+      setCoverApplication(old =>
+        old ? records.find(a => a.id === old.id) || old : null
       );
 
-      setSelectedProfileApplication((previous) =>
-        previous
-          ? loadedApplications.find((item) => item.id === previous.id) ||
-            previous
-          : null
+      setProfileApplication(old =>
+        old ? records.find(a => a.id === old.id) || old : null
       );
     } catch (err) {
       setError(err.message || "Unable to load applications.");
@@ -307,228 +188,131 @@ function EmployerApplications() {
     loadApplications();
   }, [loadApplications]);
 
-  // UNIQUE OPPORTUNITIES
-
+  // OPPORTUNITY FILTER OPTIONS
   const opportunityOptions = useMemo(() => {
-    const unique = new Map();
-
-    applications.forEach((application) => {
-      const opportunity = getApplicationOpportunity(application);
-
-      if (opportunity.id) {
-        unique.set(opportunity.id, {
+    const map = new Map();
+    applications.forEach(app => {
+      const opportunity = opportunityOf(app);
+      if (opportunity.id)
+        map.set(opportunity.id, {
           id: opportunity.id,
-          title: opportunity.title || "Untitled opportunity",
+          title: opportunity.title || "Untitled opportunity"
         });
-      }
     });
-
-    return Array.from(unique.values()).sort((a, b) =>
+    return [...map.values()].sort((a, b) =>
       a.title.localeCompare(b.title)
     );
   }, [applications]);
 
   // FILTER APPLICATIONS
-
   const filteredApplications = useMemo(() => {
-    return applications.filter((application) => {
-      const student = application.user || {};
-      const profile = student.studentProfile || {};
-      const opportunity = getApplicationOpportunity(application);
-
-      const category = getOpportunityCategory(application);
+    return applications.filter(app => {
+      const student = app.user || {};
+      const profile = profileOf(app);
+      const opportunity = opportunityOf(app);
+      const category = opportunity.category ||
+        (app.internship ? "INTERNSHIP" : "");
 
       const searchText = [
-        student.name,
-        student.email,
-        profile.university,
-        profile.branch,
-        profile.degree,
-        getCandidateSkills(profile),
-        opportunity.title,
-        opportunity.location,
-        category,
-        opportunity.employmentType,
-      ]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
-
-      const matchesSearch = searchText.includes(
-        search.trim().toLowerCase()
-      );
-
-      const matchesStatus =
-        statusFilter === "ALL" ||
-        application.status === statusFilter;
-
-      const matchesOpportunity =
-        opportunityFilter === "ALL" ||
-        opportunity.id === opportunityFilter;
-
-      const matchesCategory =
-        categoryFilter === "ALL" ||
-        category === categoryFilter;
+        student.name, student.email, profile.university,
+        profile.branch, profile.degree, ...skillsOf(profile),
+        opportunity.title, opportunity.location, category,
+        opportunity.employmentType
+      ].filter(Boolean).join(" ").toLowerCase();
 
       return (
-        matchesSearch &&
-        matchesStatus &&
-        matchesOpportunity &&
-        matchesCategory
+        searchText.includes(search.trim().toLowerCase()) &&
+        (statusFilter === "ALL" || app.status === statusFilter) &&
+        (opportunityFilter === "ALL" ||
+          opportunity.id === opportunityFilter) &&
+        (categoryFilter === "ALL" || category === categoryFilter)
       );
     });
   }, [
-    applications,
-    search,
-    statusFilter,
-    opportunityFilter,
-    categoryFilter,
+    applications, search, statusFilter,
+    opportunityFilter, categoryFilter
   ]);
 
   // STATISTICS
+  const counts = useMemo(() => ({
+    total: applications.length,
+    pending: applications.filter(a => a.status === "PENDING").length,
+    shortlisted: applications.filter(a => a.status === "SHORTLISTED").length,
+    accepted: applications.filter(a => a.status === "ACCEPTED").length,
+    interview: applications.filter(a => a.status === "INTERVIEW").length
+  }), [applications]);
 
-  const counts = useMemo(
-    () => ({
-      total: applications.length,
-
-      pending: applications.filter(
-        (item) => item.status === "PENDING"
-      ).length,
-
-      shortlisted: applications.filter(
-        (item) => item.status === "SHORTLISTED"
-      ).length,
-
-      accepted: applications.filter(
-        (item) => item.status === "ACCEPTED"
-      ).length,
-
-      interview: applications.filter(
-        (item) => item.status === "INTERVIEW"
-      ).length,
-    }),
-    [applications]
-  );
-
-  // UPDATE APPLICATION STATUS AND SAVE EMPLOYER NOTE
-
-  const updateStatus = async (applicationId, status) => {
-    const note = (statusNotes[applicationId] || "").trim();
+  // UPDATE APPLICATION STATUS
+  const updateStatus = async (id, status) => {
+    const note = (statusNotes[id] || "").trim();
 
     if (note.length > 1000) {
       setError("Status note cannot exceed 1000 characters.");
       return;
     }
 
-    setUpdatingId(applicationId);
+    setUpdatingId(id);
     setError("");
     setSuccess("");
 
     try {
       const data = await apiRequest(
-        `/employer/applications/${applicationId}/status`,
+        `/employer/applications/${id}/status`,
         {
           method: "PATCH",
-          body: JSON.stringify({
-            status,
-            note: note || undefined,
-          }),
+          body: JSON.stringify({ status, note: note || undefined })
         }
       );
 
-      // Prefer the complete application returned by the backend.
-      const updatedApplication = data.application;
-
-      if (updatedApplication) {
-        setApplications((previous) =>
-          previous.map((application) =>
-            application.id === applicationId
-              ? updatedApplication
-              : application
-          )
+      if (data.application) {
+        const updated = data.application;
+        setApplications(old =>
+          old.map(a => a.id === id ? updated : a)
         );
-
-        setSelectedApplication((previous) =>
-          previous?.id === applicationId
-            ? updatedApplication
-            : previous
-        );
-
-        setSelectedProfileApplication((previous) =>
-          previous?.id === applicationId
-            ? updatedApplication
-            : previous
-        );
+        setCoverApplication(old => old?.id === id ? updated : old);
+        setProfileApplication(old => old?.id === id ? updated : old);
       } else {
-        // Fallback if the endpoint returns only a success message.
         await loadApplications(true);
       }
 
-      setStatusNotes((previous) => ({
-        ...previous,
-        [applicationId]: "",
-      }));
-
+      setStatusNotes(old => ({ ...old, [id]: "" }));
       setSuccess("Application status and history updated successfully.");
-
       window.setTimeout(() => setSuccess(""), 3500);
     } catch (err) {
-      setError(
-        err.message || "Unable to update application status."
-      );
+      setError(err.message || "Unable to update application status.");
     } finally {
       setUpdatingId(null);
     }
   };
 
   // DOWNLOAD RESUME
-
-  const downloadResume = async (application) => {
-    const applicationId = application.id;
-
-    setDownloadingId(applicationId);
+  const downloadResume = async app => {
+    setDownloadingId(app.id);
     setError("");
 
     try {
       const token = localStorage.getItem("isyntara_token");
-
-      if (!token) {
-        throw new Error("Please log in again to download resumes.");
-      }
+      if (!token) throw new Error("Please log in again to download resumes.");
 
       const response = await fetch(
-        `${API_URL}/employer/applications/${applicationId}/resume`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        `${API_URL}/employer/applications/${app.id}/resume`,
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-
-        throw new Error(
-          data.message || "Unable to download this resume."
-        );
+        throw new Error(data.message || "Unable to download this resume.");
       }
 
       const blob = await response.blob();
-      const fileUrl = window.URL.createObjectURL(blob);
-
+      const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
-
-      link.href = fileUrl;
-      link.download = `resume-${
-        application.user?.name || "student"
-      }-${applicationId}.pdf`;
-
+      link.href = url;
+      link.download = `resume-${app.user?.name || "student"}-${app.id}.pdf`;
       document.body.appendChild(link);
       link.click();
       link.remove();
-
-      window.URL.revokeObjectURL(fileUrl);
+      URL.revokeObjectURL(url);
     } catch (err) {
       setError(err.message || "Resume download failed.");
     } finally {
@@ -536,26 +320,7 @@ function EmployerApplications() {
     }
   };
 
-  // MODAL CONTROLS
-
-  const openCoverLetter = (application) => {
-    setSelectedApplication(application);
-  };
-
-  const closeCoverLetter = () => {
-    setSelectedApplication(null);
-  };
-
-  const openCandidateProfile = (application) => {
-    setSelectedProfileApplication(application);
-  };
-
-  const closeCandidateProfile = () => {
-    setSelectedProfileApplication(null);
-  };
-
-  // CLEAR FILTERS
-
+  // FILTER CONTROLS
   const clearFilters = () => {
     setSearch("");
     setStatusFilter("ALL");
@@ -563,189 +328,164 @@ function EmployerApplications() {
     setCategoryFilter("ALL");
   };
 
-  const hasActiveFilters =
-    search.trim() !== "" ||
-    statusFilter !== "ALL" ||
-    opportunityFilter !== "ALL" ||
-    categoryFilter !== "ALL";
+  const hasFilters = Boolean(
+    search.trim() || statusFilter !== "ALL" ||
+    opportunityFilter !== "ALL" || categoryFilter !== "ALL"
+  );
 
-  // RENDER
+  // CANDIDATE COMPARISON
+  const comparisonCandidates = comparisonIds
+    .map(id => applications.find(a => a.id === id))
+    .filter(Boolean);
+
+  const toggleComparison = id => {
+    setComparisonIds(old => {
+      if (old.includes(id)) return old.filter(item => item !== id);
+      if (old.length >= 3) {
+        setError("You can compare up to 3 candidates at a time.");
+        return old;
+      }
+      setError("");
+      return [...old, id];
+    });
+  };
+
+  const closeComparison = () => setShowComparison(false);
 
   return (
-    <section
-      className="employer-applications"
-      id="employer-applications"
-    >
-      {/* PAGE HEADING */}
+    <section className="employer-applications" id="employer-applications">
 
+      {/* PAGE HEADER */}
       <div className="applications-heading">
         <div>
-          <span className="applications-eyebrow">
-            TALENT MANAGEMENT
-          </span>
-
+          <span className="applications-eyebrow">TALENT MANAGEMENT</span>
           <h2>Applications</h2>
-
           <p>
             Review candidates, evaluate applications and manage
             your hiring process across all your opportunities.
           </p>
         </div>
-
         <button
           className="applications-refresh"
-          type="button"
           onClick={() => loadApplications(true)}
-          disabled={refreshing || loading}
+          disabled={loading || refreshing}
         >
-          <RefreshCw
-            size={16}
-            className={refreshing ? "spinning" : ""}
-          />
-
+          <RefreshCw size={16} className={refreshing ? "spinning" : ""} />
           {refreshing ? "Refreshing..." : "Refresh"}
         </button>
       </div>
 
       {/* ALERTS */}
-
       {error && (
         <div className="applications-alert error">
-          <AlertCircle size={17} />
-          {error}
+          <AlertCircle size={17} /> {error}
+          <button onClick={() => setError("")} aria-label="Dismiss">
+            <X size={15} />
+          </button>
         </div>
       )}
-
       {success && (
         <div className="applications-alert success">
-          <CheckCircle2 size={17} />
-          {success}
+          <CheckCircle2 size={17} /> {success}
         </div>
       )}
 
-      {/* STATISTICS */}
-
+      {/* METRICS */}
       <div className="application-stats">
-        <div className="application-stat-card">
-          <div className="application-stat-icon">
-            <Users size={20} />
+        {[
+          [Users, "Total Applications", counts.total, ""],
+          [Clock3, "Pending Review", counts.pending, "pending-icon"],
+          [CheckCircle2, "Shortlisted", counts.shortlisted, "shortlisted-icon"],
+          [GraduationCap, "Accepted", counts.accepted, "accepted-icon"]
+        ].map(([Icon, label, value, cls]) => (
+          <div className="application-stat-card" key={label}>
+            <div className={`application-stat-icon ${cls}`}>
+              <Icon size={20} />
+            </div>
+            <div><span>{label}</span><strong>{value}</strong></div>
           </div>
-
-          <div>
-            <span>Total Applications</span>
-            <strong>{counts.total}</strong>
-          </div>
-        </div>
-
-        <div className="application-stat-card">
-          <div className="application-stat-icon pending-icon">
-            <Clock3 size={20} />
-          </div>
-
-          <div>
-            <span>Pending Review</span>
-            <strong>{counts.pending}</strong>
-          </div>
-        </div>
-
-        <div className="application-stat-card">
-          <div className="application-stat-icon shortlisted-icon">
-            <CheckCircle2 size={20} />
-          </div>
-
-          <div>
-            <span>Shortlisted</span>
-            <strong>{counts.shortlisted}</strong>
-          </div>
-        </div>
-
-        <div className="application-stat-card">
-          <div className="application-stat-icon accepted-icon">
-            <GraduationCap size={20} />
-          </div>
-
-          <div>
-            <span>Accepted</span>
-            <strong>{counts.accepted}</strong>
-          </div>
-        </div>
+        ))}
       </div>
 
       {/* SEARCH AND FILTERS */}
-
       <div className="applications-toolbar">
         <div className="applications-search">
           <Search size={18} />
-
           <input
-            type="text"
-            placeholder="Search candidates, skills or opportunities..."
             value={search}
-            onChange={(event) => setSearch(event.target.value)}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search candidates, skills or opportunities..."
           />
         </div>
 
         <select
-          value={statusFilter}
-          onChange={(event) => setStatusFilter(event.target.value)}
           className="applications-filter"
-          aria-label="Filter by application status"
+          value={statusFilter}
+          onChange={e => setStatusFilter(e.target.value)}
         >
           <option value="ALL">All statuses</option>
-
-          {Object.entries(STATUS_LABELS).map(([value, label]) => (
-            <option key={value} value={value}>
-              {label}
-            </option>
-          ))}
+          {Object.entries(STATUS).map(([key, label]) =>
+            <option value={key} key={key}>{label}</option>
+          )}
         </select>
 
         <select
-          value={opportunityFilter}
-          onChange={(event) =>
-            setOpportunityFilter(event.target.value)
-          }
           className="applications-filter"
-          aria-label="Filter by opportunity"
+          value={opportunityFilter}
+          onChange={e => setOpportunityFilter(e.target.value)}
         >
           <option value="ALL">All opportunities</option>
-
-          {opportunityOptions.map((opportunity) => (
-            <option key={opportunity.id} value={opportunity.id}>
-              {opportunity.title}
-            </option>
-          ))}
+          {opportunityOptions.map(item =>
+            <option value={item.id} key={item.id}>{item.title}</option>
+          )}
         </select>
 
         <select
-          value={categoryFilter}
-          onChange={(event) => setCategoryFilter(event.target.value)}
           className="applications-filter"
-          aria-label="Filter by opportunity category"
+          value={categoryFilter}
+          onChange={e => setCategoryFilter(e.target.value)}
         >
           <option value="ALL">All categories</option>
-
-          {CATEGORY_OPTIONS.map((category) => (
-            <option key={category} value={category}>
-              {CATEGORY_LABELS[category]}
-            </option>
-          ))}
+          {Object.entries(CATEGORIES).map(([key, label]) =>
+            <option value={key} key={key}>{label}</option>
+          )}
         </select>
 
-        {hasActiveFilters && (
-          <button
-            type="button"
-            className="applications-clear-filters"
-            onClick={clearFilters}
-          >
-            <Filter size={15} />
-            Clear filters
+        {hasFilters && (
+          <button className="applications-clear-filters" onClick={clearFilters}>
+            <Filter size={15} /> Clear filters
           </button>
         )}
       </div>
 
-      {/* APPLICATION LIST */}
+      {/* COMPARISON TOOLBAR */}
+      {comparisonIds.length > 0 && (
+        <div className="candidate-compare-bar">
+          <div>
+            <GitCompareArrows size={18} />
+            <span>
+              <strong>{comparisonIds.length}</strong> candidate
+              {comparisonIds.length === 1 ? "" : "s"} selected
+            </span>
+            <small>Select up to 3 candidates to compare.</small>
+          </div>
+          <div className="candidate-compare-actions">
+            <button
+              className="candidate-compare-clear"
+              onClick={() => setComparisonIds([])}
+            >Clear</button>
+            <button
+              className="candidate-compare-open"
+              disabled={comparisonIds.length < 2}
+              onClick={() => setShowComparison(true)}
+            >
+              <GitCompareArrows size={15} /> Compare candidates
+            </button>
+          </div>
+        </div>
+      )}
 
+      {/* APPLICATION LIST */}
       {loading ? (
         <div className="applications-loading">
           <LoaderCircle size={28} className="spinning" />
@@ -756,24 +496,18 @@ function EmployerApplications() {
           <div className="applications-empty-icon">
             <BriefcaseBusiness size={30} />
           </div>
-
           <h3>
             {applications.length === 0
               ? "No applications yet"
               : "No matching applications"}
           </h3>
-
           <p>
             {applications.length === 0
               ? "Candidate applications will appear here when someone applies to your opportunities."
               : "Try changing your search or filters to find candidates."}
           </p>
-
-          {applications.length > 0 && hasActiveFilters && (
-            <button type="button" onClick={clearFilters}>
-              Clear Filters
-            </button>
-          )}
+          {hasFilters && applications.length > 0 &&
+            <button onClick={clearFilters}>Clear Filters</button>}
         </div>
       ) : (
         <div className="application-list">
@@ -782,450 +516,399 @@ function EmployerApplications() {
               <span>YOUR TALENT PIPELINE</span>
               <h3>Candidate Applications</h3>
             </div>
-
             <span className="applications-count">
               {filteredApplications.length} found
             </span>
           </div>
 
-          {filteredApplications.map((application) => {
-            const student = application.user || {};
-            const profile = student.studentProfile || {};
-            const opportunity = getApplicationOpportunity(application);
-
-            const hasCoverLetter = Boolean(
-              application.coverLetter?.trim()
-            );
-
+          {filteredApplications.map(app => {
+            const student = app.user || {};
+            const profile = profileOf(app);
+            const opportunity = opportunityOf(app);
+            const skills = skillsOf(profile);
+            const experience = experienceOf(profile);
+            const category = CATEGORIES[
+              opportunity.category || (app.internship ? "INTERNSHIP" : "")
+            ] || "Opportunity";
             const canUpdate = ![
-              "WITHDRAWN",
-              "REJECTED",
-              "ACCEPTED",
-            ].includes(application.status);
-
-            const skills = getCandidateSkills(profile);
-            const experienceCount = getWorkExperience(profile).length;
-            const category = getOpportunityCategoryLabel(application);
-
-            const history = getHistory(application);
+              "WITHDRAWN", "REJECTED", "ACCEPTED"
+            ].includes(app.status);
 
             return (
-              <article
-                className="application-card"
-                key={application.id}
-              >
-                {/* CANDIDATE HEADER */}
+              <article className="application-card" key={app.id}>
 
+                {/* CANDIDATE HEADER */}
                 <div className="application-card-top">
+                  <label
+                    className="candidate-compare-select"
+                    title="Add candidate to comparison"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={comparisonIds.includes(app.id)}
+                      disabled={
+                        !comparisonIds.includes(app.id) &&
+                        comparisonIds.length >= 3
+                      }
+                      onChange={() => toggleComparison(app.id)}
+                    />
+                    <span />
+                  </label>
+
                   <div className="student-avatar">
-                    {(student.name || "S")
-                      .trim()
-                      .charAt(0)
-                      .toUpperCase()}
+                    {(student.name || "S").trim().charAt(0).toUpperCase()}
                   </div>
 
                   <div className="student-main-info">
-                    <h3>{student.name || "Candidate"}</h3>
-                    <p>{student.email || "No email provided"}</p>
+                    <h3>{display(student.name)}</h3>
+                    <p>{display(student.email)}</p>
                   </div>
 
-                  <span
-                    className={`application-status ${getStatusClass(
-                      application.status
-                    )}`}
-                  >
-                    {STATUS_LABELS[application.status] ||
-                      application.status}
+                  <span className={`application-status ${statusClass(app.status)}`}>
+                    {STATUS[app.status] || app.status}
                   </span>
                 </div>
 
-                {/* CANDIDATE DETAILS */}
-
+                {/* CANDIDATE INFORMATION */}
                 <div className="application-details-grid">
                   <div className="application-detail">
                     <GraduationCap size={17} />
-
-                    <div>
-                      <span>University</span>
-                      <strong>
-                        {profile.university || "Not provided"}
-                      </strong>
-                    </div>
+                    <div><span>University</span>
+                      <strong>{display(profile.university)}</strong></div>
                   </div>
-
                   <div className="application-detail">
                     <BriefcaseBusiness size={17} />
-
-                    <div>
-                      <span>Branch / Degree</span>
+                    <div><span>Branch / Degree</span>
                       <strong>
-                        {[profile.branch, profile.degree]
-                          .filter(Boolean)
-                          .join(" · ") || "Not provided"}
-                      </strong>
-                    </div>
+                        {[profile.branch, profile.degree].filter(Boolean).join(" · ") || "Not provided"}
+                      </strong></div>
                   </div>
-
                   <div className="application-detail">
                     <Building2 size={17} />
-
-                    <div>
-                      <span>Opportunity</span>
-                      <strong>
-                        {opportunity.title || "Opportunity"}
-                      </strong>
-                    </div>
+                    <div><span>Opportunity</span>
+                      <strong>{display(opportunity.title)}</strong></div>
                   </div>
-
                   <div className="application-detail">
                     <Clock3 size={17} />
-
-                    <div>
-                      <span>Applied on</span>
-                      <strong>{formatDate(application.appliedAt)}</strong>
-                    </div>
+                    <div><span>Applied on</span>
+                      <strong>{date(app.appliedAt)}</strong></div>
                   </div>
-
                   <div className="application-detail">
                     <BriefcaseBusiness size={17} />
-
-                    <div>
-                      <span>Experience</span>
+                    <div><span>Experience</span>
                       <strong>
-                        {experienceCount > 0
-                          ? `${experienceCount} experience ${
-                              experienceCount === 1 ? "entry" : "entries"
-                            }`
+                        {experience.length
+                          ? `${experience.length} experience ${experience.length === 1 ? "entry" : "entries"}`
                           : profile.hasWorkExperience
-                            ? "Experience reported"
-                            : "Not provided"}
-                      </strong>
-                    </div>
+                            ? "Experience reported" : "Not provided"}
+                      </strong></div>
                   </div>
-
                   <div className="application-detail">
-                    {opportunity.isRemote ? (
-                      <Laptop size={17} />
-                    ) : (
-                      <MapPin size={17} />
-                    )}
-
-                    <div>
-                      <span>Opportunity Type</span>
+                    {opportunity.isRemote
+                      ? <Laptop size={17} /> : <MapPin size={17} />}
+                    <div><span>Opportunity Type</span>
                       <strong>
-                        {category}
-                        {opportunity.isRemote ? " · Remote" : ""}
-                      </strong>
-                    </div>
+                        {category}{opportunity.isRemote ? " · Remote" : ""}
+                      </strong></div>
                   </div>
                 </div>
 
                 {/* SKILLS */}
-
-                {skills && (
+                {skills.length > 0 && (
                   <div className="application-skills">
                     <span>SKILLS</span>
-                    <p>{skills}</p>
+                    <p>{skills.join(", ")}</p>
                   </div>
                 )}
 
-                {/* APPLICATION DOCUMENTS */}
-
+                {/* DOCUMENT ACTIONS */}
                 <div className="application-documents">
                   <div className="application-documents-heading">
                     <FileText size={17} />
                     <span>APPLICATION DOCUMENTS</span>
                   </div>
-
                   <div className="application-document-actions">
                     <button
-                      type="button"
                       className="view-candidate-profile-button"
-                      onClick={() => openCandidateProfile(application)}
+                      onClick={() => setProfileApplication(app)}
                     >
-                      <UserRound size={16} />
-                      View Profile
+                      <UserRound size={16} /> View Profile
                     </button>
-
                     <button
-                      type="button"
                       className="resume-download-button"
-                      onClick={() => downloadResume(application)}
                       disabled={
-                        downloadingId === application.id ||
-                        !profile.resumeUrl
+                        !profile.resumeUrl || downloadingId === app.id
                       }
-                      title={
-                        profile.resumeUrl
-                          ? "Download candidate resume"
-                          : "No resume uploaded"
-                      }
+                      onClick={() => downloadResume(app)}
                     >
-                      {downloadingId === application.id ? (
-                        <LoaderCircle
-                          size={16}
-                          className="spinning"
-                        />
-                      ) : (
-                        <Download size={16} />
-                      )}
-
-                      {downloadingId === application.id
-                        ? "Downloading..."
-                        : profile.resumeUrl
-                          ? "Download Resume"
-                          : "No Resume"}
+                      {downloadingId === app.id
+                        ? <LoaderCircle size={16} className="spinning" />
+                        : <Download size={16} />}
+                      {downloadingId === app.id ? "Downloading..." : "Download Resume"}
                     </button>
-
-                    <button
-                      type="button"
-                      className="view-cover-letter-button"
-                      onClick={() => openCoverLetter(application)}
-                      disabled={!hasCoverLetter}
-                      title={
-                        hasCoverLetter
-                          ? "Read candidate cover letter"
-                          : "No cover letter submitted"
-                      }
-                    >
-                      <Eye size={16} />
-                      {hasCoverLetter
-                        ? "View Cover Letter"
-                        : "No Cover Letter"}
-                    </button>
+                    {app.coverLetter?.trim() && (
+                      <button
+                        className="view-cover-letter-button"
+                        onClick={() => setCoverApplication(app)}
+                      >
+                        <Eye size={16} /> View Cover Letter
+                      </button>
+                    )}
                   </div>
                 </div>
 
-                {/* APPLICATION DECISION */}
-
+                {/* APPLICATION FOOTER */}
                 <div className="application-card-footer">
                   <div className="application-applied-info">
                     <CalendarDays size={15} />
-                    Application ID: {application.id.slice(0, 8)}
+                    Applied {date(app.appliedAt)}
                   </div>
-
                   <div className="application-decision">
                     {canUpdate ? (
                       <>
-                        <label htmlFor={`status-${application.id}`}>
+                        <label htmlFor={`status-${app.id}`}>
                           Update status
                         </label>
-
                         <select
-                          id={`status-${application.id}`}
-                          value={application.status}
-                          disabled={updatingId === application.id}
-                          onChange={(event) =>
-                            updateStatus(
-                              application.id,
-                              event.target.value
-                            )
+                          id={`status-${app.id}`}
+                          value=""
+                          disabled={updatingId === app.id}
+                          onChange={e =>
+                            e.target.value && updateStatus(app.id, e.target.value)
                           }
                         >
-                          <option value={application.status}>
-                            {STATUS_LABELS[application.status] ||
-                              application.status}
-                          </option>
-
-                          {STATUS_OPTIONS.filter(
-                            (status) => status !== application.status
-                          ).map((status) => (
-                            <option key={status} value={status}>
-                              {STATUS_LABELS[status]}
+                          <option value="">Choose status</option>
+                          {NEXT_STATUSES.map(status =>
+                            <option value={status} key={status}>
+                              {STATUS[status]}
                             </option>
-                          ))}
+                          )}
                         </select>
-
-                        {updatingId === application.id && (
-                          <LoaderCircle
-                            size={16}
-                            className="spinning"
-                          />
-                        )}
+                        {updatingId === app.id &&
+                          <LoaderCircle size={17} className="spinning" />}
                       </>
                     ) : (
                       <span className="final-status">
                         <CheckCircle2 size={15} />
-                        {STATUS_LABELS[application.status] ||
-                          application.status}
+                        {STATUS[app.status] || app.status}
                       </span>
                     )}
                   </div>
                 </div>
 
-                {/* EMPLOYER STATUS NOTE */}
-
+                {/* EMPLOYER NOTE */}
                 {canUpdate && (
                   <div className="application-status-note">
-                    <label htmlFor={`note-${application.id}`}>
-                      Add a note to this status update (optional)
+                    <label htmlFor={`note-${app.id}`}>
+                      Internal status note (optional)
                     </label>
-
                     <textarea
-                      id={`note-${application.id}`}
-                      value={statusNotes[application.id] || ""}
-                      onChange={(event) =>
-                        setStatusNotes((previous) => ({
-                          ...previous,
-                          [application.id]: event.target.value,
+                      id={`note-${app.id}`}
+                      rows={2}
+                      maxLength={1000}
+                      placeholder="Add a note about this candidate or decision..."
+                      value={statusNotes[app.id] || ""}
+                      onChange={e =>
+                        setStatusNotes(old => ({
+                          ...old, [app.id]: e.target.value
                         }))
                       }
-                      placeholder="Example: Strong technical profile. Moving to the interview stage."
-                      maxLength={1000}
-                      rows={2}
-                      disabled={updatingId === application.id}
                     />
-
                     <span>
-                      {(statusNotes[application.id] || "").length}/1000
-                      characters
+                      {(statusNotes[app.id] || "").length}/1000 characters
                     </span>
                   </div>
                 )}
 
-                {/* APPLICATION STATUS HISTORY */}
-
+                {/* STATUS HISTORY */}
                 <div className="application-status-history">
                   <div className="application-documents-heading">
                     <History size={17} />
                     <span>APPLICATION STATUS HISTORY</span>
                   </div>
-
-                  {history.length > 0 ? (
-                    <div className="application-history-list">
-                      {history.map((entry, index) => (
-                        <div
-                          className="application-history-item"
-                          key={entry.id || `${application.id}-${index}`}
-                        >
-                          <div className="application-history-dot" />
-
-                          <div className="application-history-content">
-                            <strong>
-                              {STATUS_LABELS[entry.toStatus] ||
-                                entry.toStatus ||
-                                "Status updated"}
-                            </strong>
-
-                            <span>
-                              {entry.fromStatus
-                                ? `${STATUS_LABELS[entry.fromStatus] || entry.fromStatus} → ${STATUS_LABELS[entry.toStatus] || entry.toStatus}`
-                                : "Application submitted"}
-                            </span>
-
-                            {entry.note && <p>{entry.note}</p>}
-
-                            <small>
-                              {formatDateTime(entry.createdAt)}
-                              {entry.changedByRole &&
-                                ` · ${entry.changedByRole === "EMPLOYER"
-                                  ? "Employer"
-                                  : entry.changedByRole === "STUDENT"
-                                    ? "Candidate"
-                                    : entry.changedByRole}`}
-                            </small>
-                          </div>
+                  <div className="application-history-list">
+                    {historyOf(app).map((item, index) => (
+                      <div
+                        className="application-history-item"
+                        key={item.id || index}
+                      >
+                        <div>
+                          <strong>
+                            {STATUS[item.toStatus] || item.toStatus || "Updated"}
+                          </strong>
+                          <span>{dateTime(item.createdAt)}</span>
+                          {item.changedByRole &&
+                            <small>{item.changedByRole}</small>}
+                          {item.note && <p>{item.note}</p>}
                         </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="application-history-empty">
-                      No status history available.
-                    </p>
-                  )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
+
               </article>
             );
           })}
         </div>
       )}
 
-      {/* FOOTER NOTE */}
-
       <div className="applications-footer-note">
         <FileText size={15} />
-        Candidate information, resumes and cover letters are
-        accessible only to the employer that owns the opportunity.
+        Candidate information is provided by applicants and may be updated
+        by them.
       </div>
 
-      {/* COVER LETTER PREVIEW MODAL */}
-
-      {selectedApplication && (
+      {/* CANDIDATE COMPARISON MODAL */}
+      {showComparison && comparisonCandidates.length >= 2 && (
         <div
-          className="recruiter-cover-overlay"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) {
-              closeCoverLetter();
-            }
+          className="candidate-comparison-overlay"
+          onMouseDown={e => {
+            if (e.target === e.currentTarget) closeComparison();
           }}
         >
           <section
-            className="recruiter-cover-modal"
+            className="candidate-comparison-modal"
             role="dialog"
             aria-modal="true"
-            aria-labelledby="recruiter-cover-title"
+            aria-labelledby="candidate-comparison-title"
           >
+            <header className="candidate-comparison-header">
+              <div>
+                <span>RECRUITER WORKSPACE</span>
+                <h2 id="candidate-comparison-title">Candidate comparison</h2>
+                <p>Compare information available in candidate profiles.</p>
+              </div>
+              <button
+                className="candidate-comparison-close"
+                onClick={closeComparison}
+                aria-label="Close comparison"
+              ><X size={20} /></button>
+            </header>
+
+            <div className="candidate-comparison-scroll">
+              <div
+                className="candidate-comparison-grid"
+                style={{ "--candidate-count": comparisonCandidates.length }}
+              >
+                {comparisonCandidates.map(app => {
+                  const candidate = app.user || {};
+                  const profile = profileOf(app);
+                  const opportunity = opportunityOf(app);
+                  const skills = skillsOf(profile);
+                  const experience = experienceOf(profile);
+                  const projects = projectsOf(profile);
+                  const certifications = certificationsOf(profile);
+
+                  return (
+                    <article
+                      className="candidate-comparison-column"
+                      key={app.id}
+                    >
+                      <div className="candidate-comparison-person">
+                        <div className="student-avatar">
+                          {(candidate.name || "C").trim().charAt(0).toUpperCase()}
+                        </div>
+                        <h3>{display(candidate.name)}</h3>
+                        <p>{display(candidate.email)}</p>
+                        <span className={`application-status ${statusClass(app.status)}`}>
+                          {STATUS[app.status] || app.status}
+                        </span>
+                      </div>
+
+                      <dl>
+                        <div><dt>Applied for</dt><dd>{display(opportunity.title)}</dd></div>
+                        <div><dt>University</dt><dd>{display(profile.university)}</dd></div>
+                        <div><dt>Degree / Branch</dt>
+                          <dd>{[profile.degree, profile.branch].filter(Boolean).join(" · ") || "Not provided"}</dd>
+                        </div>
+                        <div><dt>Experience entries</dt>
+                          <dd>{experience.length || (profile.hasWorkExperience ? "Reported" : "Not provided")}</dd>
+                        </div>
+                        <div><dt>Projects</dt><dd>{projects.length}</dd></div>
+                        <div><dt>Certifications</dt><dd>{certifications.length}</dd></div>
+                        <div><dt>Applied on</dt><dd>{date(app.appliedAt)}</dd></div>
+                      </dl>
+
+                      <div className="candidate-comparison-skills">
+                        <strong>Skills</strong>
+                        {skills.length ? (
+                          <div>{skills.map((skill, i) =>
+                            <span key={`${skill}-${i}`}>{skill}</span>
+                          )}</div>
+                        ) : <p>No skills provided</p>}
+                      </div>
+
+                      <button
+                        className="candidate-comparison-profile"
+                        onClick={() => {
+                          closeComparison();
+                          setProfileApplication(app);
+                        }}
+                      >View full profile</button>
+
+                      <button
+                        className="candidate-comparison-remove"
+                        onClick={() => {
+                          setComparisonIds(old => old.filter(id => id !== app.id));
+                          if (comparisonCandidates.length <= 2)
+                            closeComparison();
+                        }}
+                      >Remove from comparison</button>
+                    </article>
+                  );
+                })}
+              </div>
+            </div>
+
+            <footer className="candidate-comparison-footer">
+              <span>Comparison uses information available in candidate profiles.</span>
+              <button onClick={closeComparison}>Done</button>
+            </footer>
+          </section>
+        </div>
+      )}
+
+      {/* COVER LETTER MODAL */}
+      {coverApplication && (
+        <div
+          className="recruiter-cover-overlay"
+          onMouseDown={e => {
+            if (e.target === e.currentTarget) setCoverApplication(null);
+          }}
+        >
+          <section className="recruiter-cover-modal" role="dialog" aria-modal="true">
             <div className="recruiter-cover-header">
               <div className="recruiter-cover-header-icon">
                 <FileText size={23} />
               </div>
-
               <div className="recruiter-cover-header-text">
                 <span>CANDIDATE APPLICATION</span>
-                <h2 id="recruiter-cover-title">Cover Letter</h2>
-                <p>
-                  Review the candidate's introduction and motivation.
-                </p>
+                <h2>Cover Letter</h2>
+                <p>{display(coverApplication.user?.name)}</p>
               </div>
-
-              <button
-                type="button"
-                className="recruiter-cover-close"
-                onClick={closeCoverLetter}
-                aria-label="Close cover letter"
-              >
+              <button onClick={() => setCoverApplication(null)}>
                 <X size={21} />
               </button>
             </div>
 
             <div className="recruiter-cover-candidate">
               <div className="recruiter-cover-avatar">
-                {(selectedApplication.user?.name || "S")
-                  .trim()
-                  .charAt(0)
-                  .toUpperCase()}
+                {(coverApplication.user?.name || "C").charAt(0).toUpperCase()}
               </div>
-
               <div className="recruiter-cover-candidate-info">
-                <strong>
-                  {selectedApplication.user?.name || "Candidate"}
-                </strong>
-
-                <span>
-                  {selectedApplication.user?.email ||
-                    "Email not available"}
-                </span>
+                <strong>{display(coverApplication.user?.name)}</strong>
+                <span>{display(coverApplication.user?.email)}</span>
               </div>
-
-              <span
-                className={`application-status ${getStatusClass(
-                  selectedApplication.status
-                )}`}
-              >
-                {STATUS_LABELS[selectedApplication.status] ||
-                  selectedApplication.status}
+              <span className={`application-status ${statusClass(coverApplication.status)}`}>
+                {STATUS[coverApplication.status] || coverApplication.status}
               </span>
             </div>
 
             <div className="recruiter-cover-opportunity">
               <Building2 size={18} />
-
               <div>
                 <span>APPLIED FOR</span>
-                <strong>
-                  {getApplicationOpportunity(selectedApplication).title ||
-                    "Opportunity"}
-                </strong>
+                <strong>{display(opportunityOf(coverApplication).title)}</strong>
               </div>
             </div>
 
@@ -1235,29 +918,18 @@ function EmployerApplications() {
                   <span>APPLICATION LETTER</span>
                   <span>iSYNTARA</span>
                 </div>
-
                 <div className="recruiter-cover-paper-divider" />
-
                 <div className="recruiter-cover-recipient">
                   <strong>Dear Hiring Team,</strong>
-                  <span>
-                    {selectedApplication.user?.name || "Candidate"}
-                  </span>
+                  <span>Application submitted {date(coverApplication.appliedAt)}</span>
                 </div>
-
                 <div className="recruiter-cover-letter-body">
-                  {selectedApplication.coverLetter
-                    ?.split("\n")
-                    .map((line, index) => (
-                      <p key={index}>{line || "\u00A0"}</p>
-                    ))}
+                  {coverApplication.coverLetter.split(/\r?\n/).map((line, i) =>
+                    <p key={i}>{line || "\u00A0"}</p>
+                  )}
                 </div>
-
                 <div className="recruiter-cover-paper-footer">
-                  <span>
-                    Submitted on{" "}
-                    {formatDate(selectedApplication.appliedAt)}
-                  </span>
+                  <span>{display(coverApplication.user?.name)}</span>
                   <span>iSYNTARA APPLICATION</span>
                 </div>
               </article>
@@ -1265,590 +937,250 @@ function EmployerApplications() {
 
             <div className="recruiter-cover-footer">
               <div className="recruiter-cover-word-count">
-                {selectedApplication.coverLetter
-                  ?.trim()
-                  .split(/\s+/)
-                  .filter(Boolean).length || 0}{" "}
-                words
+                {coverApplication.coverLetter.trim().split(/\s+/).length} words
               </div>
-
-              <button
-                type="button"
-                className="recruiter-cover-done"
-                onClick={closeCoverLetter}
-              >
-                Close Preview
-              </button>
+              <button onClick={() => setCoverApplication(null)}>Close</button>
             </div>
           </section>
         </div>
       )}
 
-      {/* CANDIDATE PROFILE MODAL */}
+      {/* FULL CANDIDATE PROFILE MODAL */}
+      {profileApplication && (() => {
+        const app = profileApplication;
+        const candidate = app.user || {};
+        const profile = profileOf(app);
+        const opportunity = opportunityOf(app);
+        const experience = experienceOf(profile);
+        const projects = projectsOf(profile);
+        const certifications = certificationsOf(profile);
+        const skills = skillsOf(profile);
+        const linkedin = safeUrl(profile.linkedinUrl || profile.linkedin);
+        const portfolio = safeUrl(profile.portfolioUrl || profile.website);
 
-      {selectedProfileApplication &&
-        (() => {
-          const candidate = selectedProfileApplication.user || {};
-          const profile = candidate.studentProfile || {};
-
-          const experienceEntries = getWorkExperience(profile);
-          const projectEntries = getCandidateProjects(profile);
-          const certificationEntries =
-            getCandidateCertifications(profile);
-
-          const skills = getSkillArray(profile);
-
-          const linkedinUrl = safeExternalUrl(profile.linkedinUrl);
-          const portfolioUrl = safeExternalUrl(profile.portfolioUrl);
-
-          const opportunity = getApplicationOpportunity(
-            selectedProfileApplication
-          );
-
-          return (
-            <div
-              className="candidate-profile-overlay"
-              onMouseDown={(event) => {
-                if (event.target === event.currentTarget) {
-                  closeCandidateProfile();
-                }
-              }}
+        return (
+          <div
+            className="candidate-profile-overlay"
+            onMouseDown={e => {
+              if (e.target === e.currentTarget) setProfileApplication(null);
+            }}
+          >
+            <section
+              className="candidate-profile-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="candidate-profile-title"
             >
-              <section
-                className="candidate-profile-modal"
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby="candidate-profile-title"
-              >
-                {/* HEADER */}
+              <header className="candidate-profile-header">
+                <div className="candidate-profile-heading">
+                  <span>CANDIDATE DETAILS</span>
+                  <h2 id="candidate-profile-title">{display(candidate.name)}</h2>
+                  <p>{display(candidate.email)}</p>
+                </div>
+                <button onClick={() => setProfileApplication(null)}>
+                  <X size={21} />
+                </button>
+              </header>
 
-                <header className="candidate-profile-header">
-                  <div className="candidate-profile-heading">
-                    <span>CANDIDATE DETAILS</span>
+              <div className="candidate-profile-scroll">
 
-                    <h2 id="candidate-profile-title">
-                      Candidate Profile
-                    </h2>
-
-                    <p>
-                      Review the candidate's education, experience
-                      and professional links.
-                    </p>
+                {/* IDENTITY */}
+                <div className="candidate-profile-identity">
+                  <div className="candidate-profile-avatar">
+                    {(candidate.name || "C").charAt(0).toUpperCase()}
                   </div>
-
-                  <button
-                    type="button"
-                    className="candidate-profile-close"
-                    onClick={closeCandidateProfile}
-                    aria-label="Close candidate profile"
-                  >
-                    <X size={21} />
-                  </button>
-                </header>
-
-                <div className="candidate-profile-scroll">
-                  {/* IDENTITY */}
-
-                  <div className="candidate-profile-identity">
-                    <div className="candidate-profile-avatar">
-                      {(candidate.name || "C")
-                        .trim()
-                        .charAt(0)
-                        .toUpperCase()}
-                    </div>
-
-                    <div className="candidate-profile-identity-text">
-                      <h3>{candidate.name || "Candidate"}</h3>
-
-                      {candidate.email ? (
-                        <a href={`mailto:${candidate.email}`}>
-                          <Mail size={15} />
-                          {candidate.email}
-                        </a>
-                      ) : (
-                        <span>Email not provided</span>
-                      )}
-
-                      <span className="candidate-profile-applied-role">
-                        Applied for: {opportunity.title || "Opportunity"}
-                      </span>
-                    </div>
-
-                    <span
-                      className={`application-status ${getStatusClass(
-                        selectedProfileApplication.status
-                      )}`}
-                    >
-                      {STATUS_LABELS[selectedProfileApplication.status] ||
-                        selectedProfileApplication.status}
+                  <div className="candidate-profile-identity-text">
+                    <h3>{display(candidate.name)}</h3>
+                    {candidate.email
+                      ? <a href={`mailto:${candidate.email}`}>{candidate.email}</a>
+                      : <span>Email not provided</span>}
+                    <span className="candidate-profile-applied-role">
+                      Applied for: {display(opportunity.title)}
                     </span>
                   </div>
-
-                  {/* EDUCATION */}
-
-                  <section className="candidate-profile-section">
-                    <div className="candidate-profile-section-title">
-                      <GraduationCap size={19} />
-                      <h3>Education</h3>
-                    </div>
-
-                    <div className="candidate-profile-info-grid">
-                      <div className="candidate-profile-info-item">
-                        <span>University / Institution</span>
-                        <strong>
-                          {profile.university || "Not provided"}
-                        </strong>
-                      </div>
-
-                      <div className="candidate-profile-info-item">
-                        <span>Degree</span>
-                        <strong>
-                          {profile.degree || "Not provided"}
-                        </strong>
-                      </div>
-
-                      <div className="candidate-profile-info-item">
-                        <span>Branch / Specialization</span>
-                        <strong>
-                          {profile.branch || "Not provided"}
-                        </strong>
-                      </div>
-
-                      <div className="candidate-profile-info-item">
-                        <span>Graduation Year</span>
-                        <strong>
-                          {profile.graduationYear || "Not provided"}
-                        </strong>
-                      </div>
-                    </div>
-                  </section>
-
-                  {/* WORK EXPERIENCE */}
-
-                  <section className="candidate-profile-section">
-                    <div className="candidate-profile-section-title">
-                      <BriefcaseBusiness size={19} />
-                      <h3>Work Experience</h3>
-
-                      <span className="candidate-profile-section-count">
-                        {experienceEntries.length}
-                      </span>
-                    </div>
-
-                    {experienceEntries.length > 0 ? (
-                      <div className="candidate-profile-experience-list">
-                        {experienceEntries.map((experience, index) => {
-                          const role = getExperienceField(experience, [
-                            "jobTitle",
-                            "title",
-                            "position",
-                            "role",
-                            "designation",
-                          ]);
-
-                          const company = getExperienceField(experience, [
-                            "company",
-                            "companyName",
-                            "organization",
-                            "employer",
-                          ]);
-
-                          const location = getExperienceField(experience, [
-                            "location",
-                            "city",
-                          ]);
-
-                          const startDate = getExperienceField(experience, [
-                            "startDate",
-                            "from",
-                            "start",
-                          ]);
-
-                          const endDate = getExperienceField(experience, [
-                            "endDate",
-                            "to",
-                            "end",
-                          ]);
-
-                          const description = getExperienceField(
-                            experience,
-                            [
-                              "description",
-                              "responsibilities",
-                              "details",
-                              "summary",
-                            ]
-                          );
-
-                          const employmentType = getExperienceField(
-                            experience,
-                            ["employmentType", "type"]
-                          );
-
-                          return (
-                            <article
-                              className="candidate-profile-experience-card"
-                              key={`${selectedProfileApplication.id}-experience-${index}`}
-                            >
-                              <h4>
-                                {role || company || `Experience ${index + 1}`}
-                              </h4>
-
-                              {role && company && <strong>{company}</strong>}
-
-                              <div className="candidate-profile-experience-meta">
-                                {location && <span>{location}</span>}
-
-                                {employmentType && (
-                                  <span>{employmentType}</span>
-                                )}
-
-                                {(startDate || endDate) && (
-                                  <span>
-                                    {startDate || "Start date not provided"}
-                                    {" – "}
-                                    {endDate || "Present"}
-                                  </span>
-                                )}
-                              </div>
-
-                              {description && <p>{description}</p>}
-
-                              {!role && !company && !description && (
-                                <p>
-                                  {typeof experience === "string"
-                                    ? experience
-                                    : JSON.stringify(experience, null, 2)}
-                                </p>
-                              )}
-                            </article>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <p className="candidate-profile-empty">
-                        {profile.hasWorkExperience
-                          ? "The candidate has indicated work experience, but no experience entries are available."
-                          : "No work experience has been added to this profile."}
-                      </p>
-                    )}
-                  </section>
-
-                  {/* PROJECTS */}
-
-                  <section className="candidate-profile-section">
-                    <div className="candidate-profile-section-title">
-                      <BriefcaseBusiness size={19} />
-                      <h3>Projects</h3>
-
-                      <span className="candidate-profile-section-count">
-                        {projectEntries.length}
-                      </span>
-                    </div>
-
-                    {projectEntries.length > 0 ? (
-                      <div className="candidate-profile-experience-list">
-                        {projectEntries.map((project, index) => {
-                          const technologies = Array.isArray(
-                            project.technologies
-                          )
-                            ? project.technologies
-                            : typeof project.technologies === "string"
-                              ? project.technologies
-                                  .split(",")
-                                  .map((item) => item.trim())
-                                  .filter(Boolean)
-                              : [];
-
-                          const projectUrl = safeExternalUrl(
-                            project.projectUrl
-                          );
-
-                          const githubUrl = safeExternalUrl(
-                            project.githubUrl
-                          );
-
-                          return (
-                            <article
-                              className="candidate-profile-experience-card"
-                              key={`project-${index}`}
-                            >
-                              <h4>
-                                {project.title || `Project ${index + 1}`}
-                              </h4>
-
-                              {(project.startDate || project.endDate) && (
-                                <div className="candidate-profile-experience-meta">
-                                  <span>
-                                    {formatProfileDate(project.startDate) ||
-                                      "Start date not provided"}
-                                    {" – "}
-                                    {formatProfileDate(project.endDate) ||
-                                      "Present"}
-                                  </span>
-                                </div>
-                              )}
-
-                              {project.description && (
-                                <p>{project.description}</p>
-                              )}
-
-                              {technologies.length > 0 && (
-                                <div className="candidate-profile-skills">
-                                  {technologies.map(
-                                    (technology, technologyIndex) => (
-                                      <span
-                                        key={`${technology}-${technologyIndex}`}
-                                      >
-                                        {technology}
-                                      </span>
-                                    )
-                                  )}
-                                </div>
-                              )}
-
-                              {(projectUrl || githubUrl) && (
-                                <div className="candidate-profile-links">
-                                  {projectUrl && (
-                                    <a
-                                      href={projectUrl}
-                                      target="_blank"
-                                      rel="noreferrer"
-                                    >
-                                      <Globe size={15} />
-                                      Live Project
-                                    </a>
-                                  )}
-
-                                  {githubUrl && (
-                                    <a
-                                      href={githubUrl}
-                                      target="_blank"
-                                      rel="noreferrer"
-                                    >
-                                      <Globe size={15} />
-                                      GitHub Repository
-                                    </a>
-                                  )}
-                                </div>
-                              )}
-                            </article>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <p className="candidate-profile-empty">
-                        No projects have been added to this profile.
-                      </p>
-                    )}
-                  </section>
-
-                  {/* CERTIFICATIONS */}
-
-                  <section className="candidate-profile-section">
-                    <div className="candidate-profile-section-title">
-                      <ShieldCheck size={19} />
-                      <h3>Certifications</h3>
-
-                      <span className="candidate-profile-section-count">
-                        {certificationEntries.length}
-                      </span>
-                    </div>
-
-                    {certificationEntries.length > 0 ? (
-                      <div className="candidate-profile-experience-list">
-                        {certificationEntries.map(
-                          (certification, index) => {
-                            const credentialUrl = safeExternalUrl(
-                              certification.credentialUrl
-                            );
-
-                            return (
-                              <article
-                                className="candidate-profile-experience-card"
-                                key={`certification-${index}`}
-                              >
-                                <h4>
-                                  {certification.name ||
-                                    `Certification ${index + 1}`}
-                                </h4>
-
-                                {certification.issuer && (
-                                  <strong>{certification.issuer}</strong>
-                                )}
-
-                                <div className="candidate-profile-experience-meta">
-                                  {certification.issueDate && (
-                                    <span>
-                                      Issued:{" "}
-                                      {formatProfileDate(
-                                        certification.issueDate
-                                      )}
-                                    </span>
-                                  )}
-
-                                  {certification.expiryDate && (
-                                    <span>
-                                      Expires:{" "}
-                                      {formatProfileDate(
-                                        certification.expiryDate
-                                      )}
-                                    </span>
-                                  )}
-                                </div>
-
-                                {certification.credentialId && (
-                                  <p>
-                                    <strong>Credential ID:</strong>{" "}
-                                    {certification.credentialId}
-                                  </p>
-                                )}
-
-                                {credentialUrl && (
-                                  <div className="candidate-profile-links">
-                                    <a
-                                      href={credentialUrl}
-                                      target="_blank"
-                                      rel="noreferrer"
-                                    >
-                                      <Globe size={15} />
-                                      Verify Certificate
-                                    </a>
-                                  </div>
-                                )}
-                              </article>
-                            );
-                          }
-                        )}
-                      </div>
-                    ) : (
-                      <p className="candidate-profile-empty">
-                        No certifications have been added to this profile.
-                      </p>
-                    )}
-                  </section>
-
-                  {/* SKILLS */}
-
-                  <section className="candidate-profile-section">
-                    <div className="candidate-profile-section-title">
-                      <CheckCircle2 size={19} />
-                      <h3>Skills</h3>
-                    </div>
-
-                    {skills.length > 0 ? (
-                      <div className="candidate-profile-skills">
-                        {skills.map((skill, index) => (
-                          <span key={`${skill}-${index}`}>
-                            {skill}
-                          </span>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="candidate-profile-empty">
-                        No skills have been added to this profile.
-                      </p>
-                    )}
-                  </section>
-
-                  {/* PROFESSIONAL LINKS */}
-
-                  <section className="candidate-profile-section">
-                    <div className="candidate-profile-section-title">
-                      <Globe size={19} />
-                      <h3>Professional Links</h3>
-                    </div>
-
-                    <div className="candidate-profile-links">
-                      {linkedinUrl ? (
-                        <a
-                          href={linkedinUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          <Globe size={17} />
-                          LinkedIn Profile
-                        </a>
-                      ) : (
-                        <span>LinkedIn: Not provided</span>
-                      )}
-
-                      {portfolioUrl ? (
-                        <a
-                          href={portfolioUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          <Globe size={17} />
-                          Portfolio / Website
-                        </a>
-                      ) : (
-                        <span>Portfolio: Not provided</span>
-                      )}
-                    </div>
-                  </section>
-
-                  {/* RESUME */}
-
-                  <section className="candidate-profile-section candidate-profile-resume-section">
-                    <div>
-                      <div className="candidate-profile-section-title">
-                        <FileText size={19} />
-                        <h3>Resume</h3>
-                      </div>
-
-                      <p>
-                        {profile.resumeUrl
-                          ? "A resume is available for this candidate."
-                          : "This candidate has not uploaded a resume."}
-                      </p>
-                    </div>
-
-                    <button
-                      type="button"
-                      className="resume-download-button"
-                      onClick={() =>
-                        downloadResume(selectedProfileApplication)
-                      }
-                      disabled={
-                        !profile.resumeUrl ||
-                        downloadingId === selectedProfileApplication.id
-                      }
-                    >
-                      {downloadingId === selectedProfileApplication.id ? (
-                        <LoaderCircle
-                          size={16}
-                          className="spinning"
-                        />
-                      ) : (
-                        <Download size={16} />
-                      )}
-
-                      {downloadingId === selectedProfileApplication.id
-                        ? "Downloading..."
-                        : "Download Resume"}
-                    </button>
-                  </section>
+                  <span className={`application-status ${statusClass(app.status)}`}>
+                    {STATUS[app.status] || app.status}
+                  </span>
                 </div>
 
-                {/* FOOTER */}
+                {/* EDUCATION */}
+                <section className="candidate-profile-section">
+                  <SectionTitle icon={GraduationCap}>Education</SectionTitle>
+                  <div className="candidate-profile-info-grid">
+                    {[
+                      ["University / Institution", profile.university],
+                      ["Degree", profile.degree],
+                      ["Branch / Specialization", profile.branch],
+                      ["Graduation Year", profile.graduationYear]
+                    ].map(([label, value]) => (
+                      <div className="candidate-profile-info-item" key={label}>
+                        <span>{label}</span><strong>{display(value)}</strong>
+                      </div>
+                    ))}
+                  </div>
+                </section>
 
-                <footer className="candidate-profile-footer">
-                  <span>
-                    Profile information supplied by the candidate.
-                  </span>
+                {/* EXPERIENCE */}
+                <section className="candidate-profile-section">
+                  <SectionTitle icon={BriefcaseBusiness} count={experience.length}>
+                    Work Experience
+                  </SectionTitle>
+                  {experience.length ? (
+                    <div className="candidate-profile-experience-list">
+                      {experience.map((item, i) => (
+                        <article className="candidate-profile-experience-card" key={i}>
+                          <h4>{display(item.jobTitle || item.position || item.title || item.role)}</h4>
+                          <strong>{display(item.company || item.organization)}</strong>
+                          <div className="candidate-profile-experience-meta">
+                            {item.location && <span>{item.location}</span>}
+                            {(item.startDate || item.endDate) && (
+                              <span>
+                                {profileDate(item.startDate)} – {item.currentlyWorking ? "Present" : profileDate(item.endDate) || "Present"}
+                              </span>
+                            )}
+                          </div>
+                          {(item.description || item.responsibilities) &&
+                            <p>{item.description || item.responsibilities}</p>}
+                        </article>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="candidate-profile-empty">No work experience has been added.</p>
+                  )}
+                </section>
 
+                {/* PROJECTS */}
+                <section className="candidate-profile-section">
+                  <SectionTitle icon={BriefcaseBusiness} count={projects.length}>
+                    Projects
+                  </SectionTitle>
+                  {projects.length ? (
+                    <div className="candidate-profile-experience-list">
+                      {projects.map((item, i) => {
+                        const url = safeUrl(item.projectUrl || item.url);
+                        return (
+                          <article className="candidate-profile-experience-card" key={i}>
+                            <h4>{display(item.title || item.name)}</h4>
+                            {item.role && <strong>{item.role}</strong>}
+                            {item.description && <p>{item.description}</p>}
+                            {item.technologies && (
+                              <p><strong>Technologies:</strong> {
+                                Array.isArray(item.technologies)
+                                  ? item.technologies.join(", ")
+                                  : item.technologies
+                              }</p>
+                            )}
+                            {url && (
+                              <div className="candidate-profile-links">
+                                <a href={url} target="_blank" rel="noreferrer">
+                                  <Globe size={15} /> View Project
+                                </a>
+                              </div>
+                            )}
+                          </article>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="candidate-profile-empty">No projects have been added.</p>
+                  )}
+                </section>
+
+                {/* CERTIFICATIONS */}
+                <section className="candidate-profile-section">
+                  <SectionTitle icon={ShieldCheck} count={certifications.length}>
+                    Certifications
+                  </SectionTitle>
+                  {certifications.length ? (
+                    <div className="candidate-profile-experience-list">
+                      {certifications.map((item, i) => {
+                        const url = safeUrl(item.credentialUrl);
+                        return (
+                          <article className="candidate-profile-experience-card" key={i}>
+                            <h4>{item.name || `Certification ${i + 1}`}</h4>
+                            {item.issuer && <strong>{item.issuer}</strong>}
+                            <div className="candidate-profile-experience-meta">
+                              {item.issueDate && <span>Issued: {profileDate(item.issueDate)}</span>}
+                              {item.expiryDate && <span>Expires: {profileDate(item.expiryDate)}</span>}
+                            </div>
+                            {item.credentialId &&
+                              <p><strong>Credential ID:</strong> {item.credentialId}</p>}
+                            {url && (
+                              <div className="candidate-profile-links">
+                                <a href={url} target="_blank" rel="noreferrer">
+                                  <Globe size={15} /> Verify Certificate
+                                </a>
+                              </div>
+                            )}
+                          </article>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="candidate-profile-empty">No certifications have been added.</p>
+                  )}
+                </section>
+
+                {/* SKILLS */}
+                <section className="candidate-profile-section">
+                  <SectionTitle icon={CheckCircle2}>Skills</SectionTitle>
+                  {skills.length ? (
+                    <div className="candidate-profile-skills">
+                      {skills.map((skill, i) =>
+                        <span key={`${skill}-${i}`}>{skill}</span>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="candidate-profile-empty">No skills have been added.</p>
+                  )}
+                </section>
+
+                {/* PROFESSIONAL LINKS */}
+                <section className="candidate-profile-section">
+                  <SectionTitle icon={Globe}>Professional Links</SectionTitle>
+                  <div className="candidate-profile-links">
+                    {linkedin
+                      ? <a href={linkedin} target="_blank" rel="noreferrer"><Globe size={17} /> LinkedIn Profile</a>
+                      : <span>LinkedIn: Not provided</span>}
+                    {portfolio
+                      ? <a href={portfolio} target="_blank" rel="noreferrer"><Globe size={17} /> Portfolio / Website</a>
+                      : <span>Portfolio: Not provided</span>}
+                  </div>
+                </section>
+
+                {/* RESUME */}
+                <section className="candidate-profile-section candidate-profile-resume-section">
+                  <div>
+                    <SectionTitle icon={FileText}>Resume</SectionTitle>
+                    <p>
+                      {profile.resumeUrl
+                        ? "A resume is available for this candidate."
+                        : "This candidate has not uploaded a resume."}
+                    </p>
+                  </div>
                   <button
-                    type="button"
-                    onClick={closeCandidateProfile}
+                    className="resume-download-button"
+                    disabled={!profile.resumeUrl || downloadingId === app.id}
+                    onClick={() => downloadResume(app)}
                   >
-                    Close Profile
+                    {downloadingId === app.id
+                      ? <LoaderCircle size={16} className="spinning" />
+                      : <Download size={16} />}
+                    {downloadingId === app.id ? "Downloading..." : "Download Resume"}
                   </button>
-                </footer>
-              </section>
-            </div>
-          );
-        })()}
+                </section>
+              </div>
+
+              <footer className="candidate-profile-footer">
+                <span>Profile information supplied by the candidate.</span>
+                <button onClick={() => setProfileApplication(null)}>
+                  Close Profile
+                </button>
+              </footer>
+            </section>
+          </div>
+        );
+      })()}
     </section>
   );
 }

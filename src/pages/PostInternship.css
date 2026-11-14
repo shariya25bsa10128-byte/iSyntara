@@ -286,3 +286,258 @@
     flex-direction: column;
   }
 }
+
+/* ================================================
+   ISYNTARA — PROFESSIONAL OPPORTUNITY EDITOR
+   Additional styles for the expanded opportunity form
+================================================ */
+
+/* Main editor card */
+.opportunity-editor-card {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  padding: 30px;
+  background:
+    radial-gradient(
+      ellipse at top right,
+      rgba(38, 113, 145, 0.07),
+      transparent 42%
+    ),
+    #080f1b;
+}
+
+/* Individual form sections */
+.opportunity-form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+/* Section heading */
+.opportunity-section-heading {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding-bottom: 17px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.opportunity-section-number {
+  width: 35px;
+  height: 35px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border: 1px solid rgba(85, 230, 242, 0.23);
+  border-radius: 8px;
+  background: rgba(85, 230, 242, 0.07);
+  color: #55e6f2;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.opportunity-section-icon {
+  width: 39px;
+  height: 39px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border: 1px solid rgba(85, 230, 242, 0.13);
+  border-radius: 9px;
+  background: rgba(85, 230, 242, 0.05);
+  color: #55d8e8;
+}
+
+.opportunity-section-heading h3 {
+  margin: 0;
+  color: #edf5fc;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.opportunity-section-heading p {
+  margin: 5px 0 0;
+  color: #778ba2;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+/* Section divider */
+.opportunity-form-divider {
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    rgba(85, 230, 242, 0.2),
+    rgba(255, 255, 255, 0.04),
+    transparent
+  );
+}
+
+/* Input and select controls */
+.post-input-wrap select {
+  width: 100%;
+  min-width: 0;
+  height: 45px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #f4f7fb;
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.post-input-wrap select option {
+  background: #0b1727;
+  color: #edf5fc;
+}
+
+.post-input-wrap input,
+.post-input-wrap select {
+  flex: 1;
+}
+
+/* Textarea improvements */
+.post-textarea-wrap {
+  min-height: 110px;
+}
+
+.post-textarea-wrap textarea {
+  min-height: 90px;
+  padding-bottom: 10px;
+}
+
+.post-textarea-wrap textarea:focus {
+  outline: none;
+}
+
+/* Better field focus */
+.post-input-wrap:focus-within,
+.post-textarea-wrap:focus-within {
+  border-color: rgba(85, 230, 242, 0.65);
+  box-shadow: 0 0 0 3px rgba(85, 230, 242, 0.055);
+}
+
+/* Work arrangement */
+.post-remote-option {
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.post-remote-option:hover {
+  border-color: rgba(85, 230, 242, 0.35);
+  background: rgba(85, 230, 242, 0.035);
+}
+
+.post-remote-option:has(input:checked) {
+  border-color: rgba(85, 230, 242, 0.45);
+  background: rgba(85, 230, 242, 0.055);
+}
+
+/* Labels and helper text */
+.opportunity-editor .post-field > span {
+  font-size: 11px;
+  letter-spacing: 0.1px;
+}
+
+.opportunity-editor .post-field > small {
+  line-height: 1.6;
+}
+
+/* Publish footer */
+.opportunity-editor .post-internship-footer {
+  margin-top: 5px;
+  padding-top: 23px;
+}
+
+/* Publish button */
+.opportunity-editor .post-publish-button {
+  min-height: 47px;
+  padding: 0 23px;
+  border-radius: 8px;
+  box-shadow: 0 5px 18px rgba(85, 230, 242, 0.08);
+}
+
+.opportunity-editor .post-publish-button:hover:not(:disabled) {
+  box-shadow: 0 7px 23px rgba(85, 230, 242, 0.17);
+}
+
+/* Responsive tablet layout */
+@media (max-width: 850px) {
+  .opportunity-editor-card {
+    padding: 23px;
+  }
+
+  .opportunity-section-heading {
+    gap: 11px;
+  }
+}
+
+/* Responsive mobile layout */
+@media (max-width: 700px) {
+  .opportunity-editor-card {
+    padding: 19px 15px;
+    gap: 23px;
+  }
+
+  .opportunity-form-section {
+    gap: 20px;
+  }
+
+  .opportunity-section-heading {
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .opportunity-section-number {
+    width: 31px;
+    height: 31px;
+  }
+
+  .opportunity-section-icon {
+    width: 34px;
+    height: 34px;
+  }
+
+  .opportunity-section-heading h3 {
+    font-size: 13px;
+  }
+
+  .opportunity-section-heading p {
+    font-size: 10px;
+  }
+
+  .post-input-wrap select {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 430px) {
+  .opportunity-editor-card {
+    padding: 16px 12px;
+  }
+
+  .opportunity-section-icon {
+    display: none;
+  }
+
+  .opportunity-section-heading {
+    gap: 10px;
+  }
+
+  .opportunity-editor .post-publish-button {
+    width: 100%;
+  }
+}
+
+/* Accessibility */
+.opportunity-editor button:focus-visible,
+.opportunity-editor input:focus-visible,
+.opportunity-editor select:focus-visible,
+.opportunity-editor textarea:focus-visible {
+  outline: 2px solid #55e6f2;
+  outline-offset: 3px;
+}

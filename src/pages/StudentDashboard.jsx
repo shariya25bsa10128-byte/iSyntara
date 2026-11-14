@@ -1,4 +1,3 @@
-
 import { useCallback, useEffect, useState } from "react";
 
 import {
@@ -174,6 +173,21 @@ function StudentDashboard({ page = "overview" }) {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
+  // ==========================================
+  // APPLICATION STATISTICS AND RECENT APPLICATIONS
+  // ==========================================
+
+  const [applicationStats, setApplicationStats] = useState({
+    total: 0,
+    underReview: 0,
+    shortlisted: 0,
+    accepted: 0,
+  });
+
+  const [recentApplications, setRecentApplications] = useState([]);
+  const [applicationsLoading, setApplicationsLoading] = useState(false);
+  const [applicationsError, setApplicationsError] = useState("");
+
   const currentPage = pageInformation[page] ? page : "overview";
   const pageInfo = pageInformation[currentPage];
 
@@ -293,6 +307,67 @@ function StudentDashboard({ page = "overview" }) {
   useEffect(() => {
     loadProfile();
   }, [loadProfile]);
+
+  // ==========================================
+  // LOAD APPLICATION STATISTICS
+  // ==========================================
+
+  const loadApplicationStats = useCallback(async () => {
+    try {
+      setApplicationsLoading(true);
+      setApplicationsError("");
+
+      const data = await apiRequest("/applications/my");
+
+      const applications = Array.isArray(data.applications)
+        ? data.applications
+        : [];
+
+      // Sort applications by newest application date.
+      const sortedApplications = [...applications].sort(
+        (a, b) =>
+          new Date(b.appliedAt || 0) -
+          new Date(a.appliedAt || 0)
+      );
+
+      // Keep the three most recent applications.
+      setRecentApplications(
+        sortedApplications.slice(0, 3)
+      );
+
+      setApplicationStats({
+        total: applications.length,
+
+        underReview: applications.filter(
+          (item) =>
+            item.status === "PENDING" ||
+            item.status === "REVIEWED"
+        ).length,
+
+        shortlisted: applications.filter(
+          (item) =>
+            item.status === "SHORTLISTED" ||
+            item.status === "INTERVIEW"
+        ).length,
+
+        accepted: applications.filter(
+          (item) => item.status === "ACCEPTED"
+        ).length,
+      });
+    } catch (err) {
+      setApplicationsError(
+        err.message || "Unable to load application statistics."
+      );
+    } finally {
+      setApplicationsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (currentPage === "overview") {
+      loadApplicationStats();
+    }
+  }, [currentPage, loadApplicationStats]);
 
   // ==========================================
   // MESSAGE HANDLERS
@@ -613,7 +688,7 @@ function StudentDashboard({ page = "overview" }) {
 
         if (
           project.endDate &&
-          !/^\d{4}-(0[1-9]|1[0-2])$/.test(project.endDate)
+          !/^\d{4}-(0[1-9]|1[0-9]|1[0-2])$/.test(project.endDate)
         ) {
           throw new Error(
             "Please enter a valid project end date."
@@ -1011,13 +1086,13 @@ function StudentDashboard({ page = "overview" }) {
           </div>
 
           <div className="topbar-right">
-  <NotificationBell />
+            <NotificationBell />
 
-  <span className="student-role-badge">
-    <GraduationCap size={15} />
-    STUDENT PORTAL
-  </span>
-</div>
+            <span className="student-role-badge">
+              <GraduationCap size={15} />
+              STUDENT PORTAL
+            </span>
+          </div>
         </header>
 
         <div className="student-content">
@@ -1105,6 +1180,163 @@ function StudentDashboard({ page = "overview" }) {
                 </div>
               </section>
 
+              {/* APPLICATION OVERVIEW */}
+
+              <section className="dashboard-panel application-overview-panel">
+                <div className="panel-heading">
+                  <div>
+                    <span className="panel-eyebrow">
+                      APPLICATION ACTIVITY
+                    </span>
+                    <h2>Application Overview</h2>
+                    <p>Your career opportunities at a glance.</p>
+                  </div>
+
+                  <NavLink
+                    to="/student/applications"
+                    className="application-overview-link"
+                  >
+                    View All
+                    <ExternalLink size={15} />
+                  </NavLink>
+                </div>
+
+                {applicationsLoading ? (
+                  <p className="application-stats-message">
+                    Loading your application statistics...
+                  </p>
+                ) : applicationsError ? (
+                  <p className="application-stats-message error">
+                    {applicationsError}
+                  </p>
+                ) : (
+                  <div className="application-overview-grid">
+                    <div className="application-overview-card">
+                      <span>Total Applications</span>
+                      <strong>{applicationStats.total}</strong>
+                    </div>
+
+                    <div className="application-overview-card">
+                      <span>Under Review</span>
+                      <strong>{applicationStats.underReview}</strong>
+                    </div>
+
+                    <div className="application-overview-card">
+                      <span>Shortlisted / Interview</span>
+                      <strong>{applicationStats.shortlisted}</strong>
+                    </div>
+
+                    <div className="application-overview-card">
+                      <span>Accepted</span>
+                      <strong>{applicationStats.accepted}</strong>
+                    </div>
+                  </div>
+                )}
+              </section>
+
+              {/* RECENT APPLICATIONS */}
+
+              <section className="dashboard-panel recent-applications-panel">
+                <div className="panel-heading">
+                  <div>
+                    <span className="panel-eyebrow">
+                      YOUR CAREER JOURNEY
+                    </span>
+                    <h2>Recent Applications</h2>
+                    <p>
+                      Your latest submitted career opportunities.
+                    </p>
+                  </div>
+
+                  <NavLink
+                    to="/student/applications"
+                    className="application-overview-link"
+                  >
+                    View All
+                    <ExternalLink size={15} />
+                  </NavLink>
+                </div>
+
+                {applicationsLoading ? (
+                  <p className="application-stats-message">
+                    Loading recent applications...
+                  </p>
+                ) : applicationsError ? (
+                  <p className="application-stats-message error">
+                    Unable to load recent applications.
+                  </p>
+                ) : recentApplications.length === 0 ? (
+                  <p className="application-stats-message">
+                    You haven't applied to any opportunities yet.
+                  </p>
+                ) : (
+                  <div className="recent-applications-list">
+                    {recentApplications.map((application) => {
+                      const opportunity =
+                        application.opportunity ||
+                        application.internship ||
+                        {};
+
+                      const company =
+                        opportunity.company?.name ||
+                        opportunity.company?.companyName ||
+                        opportunity.company?.nameOfCompany ||
+                        "Company";
+
+                      const statusLabels = {
+                        PENDING: "Pending",
+                        REVIEWED: "Reviewed",
+                        SHORTLISTED: "Shortlisted",
+                        INTERVIEW: "Interview",
+                        ACCEPTED: "Accepted",
+                        REJECTED: "Rejected",
+                        WITHDRAWN: "Withdrawn",
+                      };
+
+                      const status =
+                        application.status || "PENDING";
+
+                      return (
+                        <div
+                          className="recent-application-item"
+                          key={application.id}
+                        >
+                          <div className="recent-application-info">
+                            <strong>
+                              {opportunity.title ||
+                                "Career Opportunity"}
+                            </strong>
+
+                            <span>{company}</span>
+
+                            <small>
+                              Applied{" "}
+                              {application.appliedAt
+                                ? new Date(
+                                    application.appliedAt
+                                  ).toLocaleDateString("en-IN", {
+                                    day: "numeric",
+                                    month: "short",
+                                    year: "numeric",
+                                  })
+                                : "Date unavailable"}
+                            </small>
+                          </div>
+
+                          <span
+                            className={`recent-application-status status-${status.toLowerCase()}`}
+                          >
+                            {statusLabels[status] || status}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </section>
+
+              {/* PROFILE STRENGTH */}
+
               <section className="dashboard-panel completion-panel">
                 <div className="panel-heading">
                   <div>
@@ -1130,10 +1362,13 @@ function StudentDashboard({ page = "overview" }) {
                 </div>
 
                 <p>
-                  Complete your academic and professional details
-                  to help employers understand your background.
+                  {profileCompletion === 100
+                    ? "Your profile is complete! You're ready to showcase your qualifications to employers."
+                    : "Complete your academic and professional details to help employers understand your background."}
                 </p>
               </section>
+
+              {/* QUICK ACCESS */}
 
               <section className="dashboard-panel">
                 <div className="panel-heading">
@@ -2020,24 +2255,24 @@ function StudentDashboard({ page = "overview" }) {
                               </div>
 
                               <div className="profile-field">
-                                <label htmlFor={`cert-id-${index}`}>
+                                <label htmlFor={`cert-credential-${index}`}>
                                   Credential ID
                                 </label>
 
                                 <input
-                                  id={`cert-id-${index}`}
+                                  id={`cert-credential-${index}`}
                                   name="credentialId"
                                   value={certification.credentialId}
                                   onChange={(event) =>
                                     handleCertificationChange(index, event)
                                   }
-                                  placeholder="Optional credential ID"
+                                  placeholder="Credential ID"
                                 />
                               </div>
 
                               <div className="profile-field">
                                 <label htmlFor={`cert-url-${index}`}>
-                                  Verification URL
+                                  Credential URL
                                 </label>
 
                                 <input
@@ -2068,21 +2303,16 @@ function StudentDashboard({ page = "overview" }) {
                   </button>
                 </section>
 
-                {/* SAVE PROFILE */}
-
-                <div className="profile-form-footer">
+                <div className="profile-form-actions">
                   <button
                     type="submit"
-                    className="save-profile-button"
+                    className="primary-dashboard-button"
                     disabled={saving}
                   >
                     {saving ? (
                       <>
-                        <LoaderCircle
-                          size={17}
-                          className="spin"
-                        />
-                        Saving...
+                        <LoaderCircle size={17} className="spin" />
+                        Saving Profile...
                       </>
                     ) : (
                       <>
@@ -2108,11 +2338,11 @@ function StudentDashboard({ page = "overview" }) {
                     CAREER DOCUMENTS
                   </span>
 
-                  <h2>My Resume</h2>
+                  <h2>Manage Your Resume</h2>
 
                   <p>
-                    Upload your latest resume so employers can
-                    review your qualifications.
+                    Upload a PDF resume to make your qualifications
+                    visible to employers.
                   </p>
                 </div>
 
@@ -2121,9 +2351,9 @@ function StudentDashboard({ page = "overview" }) {
                 </div>
               </div>
 
-              <div className="resume-upload-container">
+              <div className="resume-upload-area">
                 <div className="resume-upload-icon">
-                  <Upload size={28} />
+                  <Upload size={30} />
                 </div>
 
                 <h3>
@@ -2133,130 +2363,98 @@ function StudentDashboard({ page = "overview" }) {
                 </h3>
 
                 <p>
-                  Upload a PDF file. Maximum file size: 5 MB.
+                  Select a PDF file up to 5 MB.
                 </p>
 
-                {resume && (
-                  <div className="resume-current-status">
-                    <CheckCircle2 size={17} />
-
-                    <span>
-                      Resume available in your account
-                    </span>
-                  </div>
-                )}
-
-                <form
-                  className="resume-upload-form"
-                  onSubmit={handleUploadResume}
-                >
-                  <label
-                    htmlFor="resume-upload"
-                    className="resume-file-label"
-                  >
-                    <Upload size={16} />
-                    Choose PDF
-                  </label>
-
+                <form onSubmit={handleUploadResume}>
                   <input
                     id="resume-upload"
                     type="file"
-                    accept="application/pdf,.pdf"
+                    accept=".pdf,application/pdf"
                     onChange={handleFileChange}
-                    hidden
                   />
 
                   {selectedFile && (
-                    <span className="selected-resume-name">
-                      {selectedFile.name}
-                    </span>
+                    <p className="selected-resume-file">
+                      Selected: {selectedFile.name}
+                    </p>
                   )}
 
                   <button
                     type="submit"
-                    className="upload-resume-button"
-                    disabled={!selectedFile || uploading}
+                    className="primary-dashboard-button"
+                    disabled={uploading || !selectedFile}
                   >
                     {uploading ? (
                       <>
-                        <LoaderCircle
-                          size={16}
-                          className="spin"
-                        />
+                        <LoaderCircle size={17} className="spin" />
                         Uploading...
                       </>
                     ) : (
                       <>
-                        <Upload size={16} />
+                        <Upload size={17} />
                         Upload Resume
                       </>
                     )}
                   </button>
                 </form>
+              </div>
 
-                {resume && (
-                  <div className="resume-actions">
+              {resume && (
+                <div className="resume-current-file">
+                  <div className="resume-current-icon">
+                    <FileText size={23} />
+                  </div>
+
+                  <div className="resume-current-info">
+                    <strong>Your uploaded resume</strong>
+                    <span>PDF document</span>
+                  </div>
+
+                  <div className="resume-current-actions">
                     <button
                       type="button"
-                      className="download-resume-button"
                       onClick={handleDownloadResume}
+                      className="resume-action-button"
                     >
-                      <Download size={16} />
-                      Download Resume
+                      <Download size={17} />
+                      Download
                     </button>
 
                     <button
                       type="button"
-                      className="delete-resume-button"
                       onClick={handleDeleteResume}
+                      className="resume-delete-button"
                       disabled={deleting}
                     >
                       {deleting ? (
-                        <LoaderCircle
-                          size={16}
-                          className="spin"
-                        />
+                        <LoaderCircle size={17} className="spin" />
                       ) : (
-                        <Trash2 size={16} />
+                        <Trash2 size={17} />
                       )}
-
-                      {deleting
-                        ? "Deleting..."
-                        : "Delete Resume"}
+                      Delete
                     </button>
                   </div>
-                )}
-              </div>
+                </div>
+              )}
             </section>
           )}
 
           {/* ================================== */}
-          {/* OPPORTUNITIES AND APPLICATIONS */}
+          {/* OPPORTUNITIES */}
           {/* ================================== */}
 
           {currentPage === "internships" && (
             <StudentInternships />
           )}
 
+          {/* ================================== */}
+          {/* APPLICATIONS */}
+          {/* ================================== */}
+
           {currentPage === "applications" && (
             <StudentApplications />
           )}
-
-          {/* ================================== */}
-          {/* FOOTER */}
-          {/* ================================== */}
-
-          <footer className="student-dashboard-footer">
-            <div>
-              <Orbit size={19} />
-              <span>iSyntara Aerospace</span>
-            </div>
-
-            <p>
-              Connecting engineering talent with the future
-              of aerospace.
-            </p>
-          </footer>
         </div>
       </main>
     </div>
