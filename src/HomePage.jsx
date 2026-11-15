@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import {
   ArrowDown,
@@ -47,7 +48,6 @@ const services = [
 
 function HomePage() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [heroProgress, setHeroProgress] = useState(0);
 
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -57,42 +57,6 @@ function HomePage() {
   const dashboardPath = isStudent
     ? "/student/dashboard"
     : "/employer/dashboard";
-
-  // Cinematic hero scroll progress
-  useEffect(() => {
-    const updateProgress = () => {
-      const hero = document.querySelector(".cinematic-hero");
-      if (!hero) return;
-
-      const distance = hero.offsetHeight - window.innerHeight;
-
-      const progress =
-        distance > 0
-          ? Math.min(
-              Math.max(
-                -hero.getBoundingClientRect().top / distance,
-                0
-              ),
-              1
-            )
-          : 0;
-
-      setHeroProgress(progress);
-    };
-
-    updateProgress();
-
-    window.addEventListener("scroll", updateProgress, {
-      passive: true,
-    });
-
-    window.addEventListener("resize", updateProgress);
-
-    return () => {
-      window.removeEventListener("scroll", updateProgress);
-      window.removeEventListener("resize", updateProgress);
-    };
-  }, []);
 
   // Video playback and reduced-motion accessibility
   useEffect(() => {
@@ -216,20 +180,20 @@ function HomePage() {
         <div className="cinematic-sticky">
           <div className="cinematic-background">
             <video
-  className="cinematic-video"
-  autoPlay
-  muted
-  loop
-  playsInline
-  controls
-  preload="auto"
-  poster="/media/isyntara-hero-poster.png"
->
-  <source
-    src="/media/isyntara-hero.mp4"
-    type="video/mp4"
-  />
-</video>
+              className="cinematic-video"
+              autoPlay
+              muted
+              loop
+              playsInline
+              controls
+              preload="auto"
+              poster="/media/isyntara-hero-poster.png"
+            >
+              <source
+                src="/media/isyntara-hero.mp4"
+                type="video/mp4"
+              />
+            </video>
           </div>
 
           <div className="hero-overlay" />
@@ -276,29 +240,9 @@ function HomePage() {
             </div>
           </div>
 
+          {/* HERO BOTTOM */}
           <div className="cinematic-bottom">
             <span>ENGINEERING THE POSSIBLE</span>
-
-            <div
-              className="scene-progress"
-              aria-label="Hero experience progress"
-            >
-              <span className={heroProgress < 0.5 ? "active" : ""}>
-                01
-              </span>
-
-              <div className="scene-progress-track">
-                <div
-                  style={{
-                    width: `${heroProgress * 100}%`,
-                  }}
-                />
-              </div>
-
-              <span className={heroProgress >= 0.5 ? "active" : ""}>
-                02
-              </span>
-            </div>
 
             <a href="#about" className="scroll-indicator">
               SCROLL TO EXPLORE <ArrowDown size={15} />
